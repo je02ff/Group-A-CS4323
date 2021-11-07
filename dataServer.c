@@ -69,6 +69,7 @@ int main() {
                     isBuyer = false;
                 }
                 bzero(buffer, MSG_BUFFER_SIZE);
+                writeSocket(&clientSock, "[CONFIRMATION]");
 
                 /*---Set clientID ---*/
                 while(!clientIDSet) {
