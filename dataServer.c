@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <strings.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -12,10 +13,13 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <assert.h>
 
 #define PORT_NUM 8080
 #define CLIENT_BACKLOG 25
+#define MSG_BUFFER_SIZE 10240
 
+/*---Function Declarations---*/
 void createSocket(int *sock);
 
 void bindSocket(struct sockaddr_in *sAddress, const int *sock);
@@ -24,12 +28,21 @@ void listenOnSocket(const int* sock, int backLogCount);
 
 bool acceptConnection(int* clientSock, const int* hSock, struct sockaddr_in* client);
 
+void readSocket(const int* sock, char* buffer);
+
+void writeSocket(const int* sock, char* buffer);
+
+void populateNewClientData(bool isBuyer, int* clientSock, int* clientID);
+
+bool validateID(char* buffer, char* dataBase, int* clientSock);
+
 int main() {
     /* TCP Vars */
     int hSocket;
     int clientSock;
     struct sockaddr_in server = {0};
     struct sockaddr_in client = {0};
+    char buffer[MSG_BUFFER_SIZE];
     pid_t pid;
 
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
@@ -42,9 +55,60 @@ int main() {
         if (acceptConnection(&clientSock, &hSocket, &client) == true) { //Accept incoming client connection
             pid = fork();                                               //Fork client process
             if(pid == 0) {                                              //code for child(client) process
-                close(hSocket);                                         //close hSocket, child uses clientSock
+                close(hSocket);                                       //close hSocket, child uses clientSock
+                bool isBuyer = true;                                    //indicates if client is a buyer or seller
+                bool clientIDSet = false;
+                int clientID;
 
-                /*//Instructions a client can make:
+                /*---Establish if client is a Buyer or a Seller---*/
+                bzero(buffer, MSG_BUFFER_SIZE);
+                readSocket(&clientSock, buffer);
+                if(strstr(buffer, "[BUYER]") != NULL) {
+                    isBuyer = true;
+                } else if (strstr(buffer, "[SELLER]") != NULL) {
+                    isBuyer = false;
+                }
+                bzero(buffer, MSG_BUFFER_SIZE);
+
+                /*---Set clientID ---*/
+                while(!clientIDSet) {
+                    readSocket(&clientSock, buffer);
+                    if(strstr(buffer, "[NEW_CLIENT]") != NULL) {
+                        populateNewClientData(isBuyer, &clientSock, &clientID);
+                        writeSocket(&clientSock, "[CONFIRMATION]");
+                        clientIDSet = true;
+                    } else if (strstr(buffer, "[LOGIN]") != NULL) {
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        readSocket(&clientSock, buffer); //read UID sent by Client
+                        if(isBuyer) {
+                            if (validateID(buffer, "CustomerInformation.txt", &clientSock)) {
+                                clientID = (int) buffer;
+                                clientIDSet = true;
+                            }
+                        } else {
+                            if (validateID(buffer, "SellerInformation.txt", &clientSock)) {
+                                clientID = (int) buffer;
+                                clientIDSet = true;
+                            }
+                        }
+                    }
+                }
+
+                /*---Main Logic Loop: Driven by Client Commands ---*/
+                while(strstr(buffer, "[QUIT]") != NULL) {
+                    bzero(buffer, MSG_BUFFER_SIZE);
+                    readSocket(&clientSock, buffer);
+
+                    //more code commands
+                }
+                /*---Client Quit ---*/
+                    close(clientSock);
+                    exit(1);
+
+
+                //Instructions a client can make:
+                 /* On client start, SEND [BUYER] if user select Buyer Menu or [SELLER] if user selects Seller Menu
+
                     1.store new client data  TCP COMMAND: [NEW_CLIENT]
                         IF new Buyer
                             WRITE CustomerInformation.txt
@@ -217,11 +281,7 @@ int main() {
 
 
                  */
-                /*//Things to do when a client disconnects:
-                    close(socket->socketFD);
-                    free(socket);
-                    exit(1);
-                */
+
 
             } else if(pid > 0) {                                        //I'm the parent, Do parent things
                 close(clientSock);                                      //close childSocket, parent uses hSocket
@@ -234,6 +294,8 @@ int main() {
     }
     return 0;
 }
+
+/*---Function Definitions---*/
 
 void createSocket(int *sock) {
     *sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -277,5 +339,38 @@ bool acceptConnection(int* clientSock, const int* hSock, struct sockaddr_in* cli
     return true;
 }
 
+void readSocket(const int* sock, char* buffer) {
+
+    if(read(*sock, buffer, MSG_BUFFER_SIZE) == -1) {
+        printf("failed to read socket\n");
+        exit(1);
+    }
+}
+
+void writeSocket(const int* sock, char* buffer) {
+
+    if (write(*sock, buffer, MSG_BUFFER_SIZE) == -1) {
+        printf("failed to write socket\n\n");
+        exit(1);
+    }
+
+}
+
+void populateNewClientData(bool isBuyer, int* clientSock, int* clientID) {
+    char firstName[30];
+    char lastName[30];
+    char streetAddress[30];
+    char city[30];
+    char state[30];
+    char zipCode[30];
+
+    //CODE TO read data into char arrays. generate new UID and set to clientID
+    // and store into either CustomerInformation.txt or SellerInformation.txt
 
 
+}
+
+
+bool validateID(char* buffer, char* dataBase, int* clientSock) {
+
+}
