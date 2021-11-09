@@ -14,7 +14,7 @@
 
 
 struct csvClientInfo {
-    char uuid[5];
+    int uuid;
     char firstName[20];
     char lastName[20];
     char streetAddress[20];
@@ -24,36 +24,36 @@ struct csvClientInfo {
 };
 
 struct csvProductInfo {
-    char productId[5];
+    int productId;
     char productName[20];
-    char sellerId[5];
-    char quantity[20];
-    char price[20];
+    int sellerId;
+    int quantity;
+    int price;
 };
 
 struct csvBillingInfo {
-    char orderId[5];
-    char customerId[5];
+    int orderId;
+    int customerId;
     char firstName[20];
     char lastName[20];
     char streetAddress[20];
     char city[20];
     char state[20];
     char zipCode[20];
-    char totalOrderCost[20];
+    int totalOrderCost;
 };
 
 struct csvCustomerOrderInfo {
-    char orderId[5];
-    char productId[5];
-    char quantityPurchased[20];
+    int orderId;
+    int productId;
+    int quantityPurchased;
     char firstName[20];
     char lastName[20];
     char streetAddress[20];
     char city[20];
     char state[20];
     char zipCode[20];
-    char totalPrice[20];  //quantityPurchased * itemPrice
+    int totalPrice;  //quantityPurchased * itemPrice
 };
 
 /*--loads buyer or seller data into a table, keys off of dbFile name to determine which --*/

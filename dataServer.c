@@ -18,10 +18,6 @@
 #include "readDatabaseIntoArray.h"
 #include "tcpStuff.h"
 
-
-
-
-
 /*---Function Declarations---*/
 bool validateID(char* buffer, char* dataBase, int* clientSock);
 
@@ -530,7 +526,7 @@ bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
     while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
         record = strtok(line,",");
         while(record != NULL) {
-            strcpy(table[rowCount].uuid, record);
+            table[rowCount].uuid = atoi(record);
             strcpy(table[rowCount].firstName, strtok(NULL,","));
             strcpy(table[rowCount].lastName, strtok(NULL,","));
             strcpy(table[rowCount].streetAddress, strtok(NULL,","));
@@ -560,11 +556,11 @@ bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
     while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
         record = strtok(line,",");
         while(record != NULL) {
-            strcpy(table[rowCount].productId, record);
+            table[rowCount].productId = atoi(record);
             strcpy(table[rowCount].productName, strtok(NULL,","));
-            strcpy(table[rowCount].sellerId, strtok(NULL,","));
-            strcpy(table[rowCount].quantity, strtok(NULL,","));
-            strcpy(table[rowCount].price, strtok(NULL,","));
+            table[rowCount].sellerId = atoi(strtok(NULL,","));
+            table[rowCount].quantity =  atoi(strtok(NULL,","));
+            table[rowCount].price = atoi(strtok(NULL,","));
             record = NULL;
             rowCount++;
         }
@@ -586,16 +582,16 @@ bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
     while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
         record = strtok(line,",");
         while(record != NULL) {
-            strcpy(table[rowCount].orderId, record);
-            strcpy(table[rowCount].productId, strtok(NULL,","));
-            strcpy(table[rowCount].quantityPurchased, strtok(NULL,","));
+            table[rowCount].orderId = atoi(record);
+            table[rowCount].productId = atoi(strtok(NULL,","));
+            table[rowCount].quantityPurchased = atoi(strtok(NULL,","));
             strcpy(table[rowCount].firstName, strtok(NULL,","));
             strcpy(table[rowCount].lastName, strtok(NULL,","));
             strcpy(table[rowCount].streetAddress, strtok(NULL,","));
             strcpy(table[rowCount].city, strtok(NULL,","));
             strcpy(table[rowCount].state, strtok(NULL,","));
             strcpy(table[rowCount].zipCode, strtok(NULL,","));
-            strcpy(table[rowCount].totalPrice, strtok(NULL,","));
+            table[rowCount].totalPrice = atoi(strtok(NULL,","));
             record = NULL;
             rowCount++;
         }
@@ -617,15 +613,15 @@ bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]) {
     while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
         record = strtok(line,",");
         while(record != NULL) {
-            strcpy(table[rowCount].orderId, record);
-            strcpy(table[rowCount].customerId, strtok(NULL,","));
+            table[rowCount].orderId = atoi(record);
+            table[rowCount].customerId = atoi(strtok(NULL,","));
             strcpy(table[rowCount].firstName, strtok(NULL,","));
             strcpy(table[rowCount].lastName, strtok(NULL,","));
             strcpy(table[rowCount].streetAddress, strtok(NULL,","));
             strcpy(table[rowCount].city, strtok(NULL,","));
             strcpy(table[rowCount].state, strtok(NULL,","));
             strcpy(table[rowCount].zipCode, strtok(NULL,","));
-            strcpy(table[rowCount].totalOrderCost, strtok(NULL,","));
+            table[rowCount].totalOrderCost = atoi(strtok(NULL,","));
             record = NULL;
             rowCount++;
         }
