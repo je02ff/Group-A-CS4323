@@ -126,7 +126,7 @@ int main() {
                          */
 
                     /*3. View Available Products TCP COMMAND: [VIEW_PRODUCTS]*/
-                    //REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],uuid,"
+                    //REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],"
                     //OR REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[SELLER],uuid,"
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
                         printf("View products!\n"); //for testing
@@ -526,7 +526,11 @@ void writeNewClientData(char *buffer) {
 }
 
 void viewProducts(char *buffer, int* clientSock) {
-    char uuid[5] = {0};
+    //REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],"
+    //OR REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[SELLER],uuid,"
+    int rowCount = 0;
+    char dataToSendClient[MSG_BUFFER_SIZE] = {0};
+    char numsToString[20] = {0};
     char clientType[25] = {0};
     char* ptr;
 
@@ -534,16 +538,62 @@ void viewProducts(char *buffer, int* clientSock) {
     ptr = strtok(buffer,",");
     sprintf(clientType, "%s", ptr);
 
-    //extract uuID
-    ptr = strtok(buffer,",");
-    sprintf(uuid, "%s", ptr);
+    if (strstr(clientType, "[BUYER]") != NULL) {
+        //SEND ALL: ProductIDs, Product Names, Quantitys, Price/Units*/
+        struct csvProductInfo productList[maxRowsInDB];
+        if (loadProductInfo("ProductInfo.txt", productList)) {
+            while(productList[rowCount].productId != 0) {
+                sprintf(numsToString,"%d", productList[rowCount].productId);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
 
-    if (strstr(clientType, "[BUYER]") != NULL) { //IF Buyer
-        /*READ ProductInfo.txt
-        SEND ALL: ProductIDs, Product Names, Quantitys, Price/Units*/
+                strcat(dataToSendClient, productList[rowCount].productName);
+                strcat(dataToSendClient, ",");
+
+                bzero(numsToString,20);
+                sprintf(numsToString,"%d", productList[rowCount].quantity);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+
+                bzero(numsToString,20);
+                sprintf(numsToString,"%d", productList[rowCount].price);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",\n");
+                rowCount++;
+            }
+            writeSocket(clientSock,dataToSendClient);
+        }
     } else {                                            //IF Seller
         /*READ ProductInfo.txt
         SEND FILTERED to Seller's ID:  ProductIDs, Product Names, Quantitys, Price/Units*/
+
+        //extract seller's ID
+
+        int requestingSellerID = atoi(strtok(buffer,","));
+        struct csvProductInfo productList[maxRowsInDB];
+        if (loadProductInfo("ProductInfo.txt", productList)) {
+            while(productList[rowCount].productId != 0 && productList[rowCount].sellerId != requestingSellerID) {
+                sprintf(numsToString,"%d", productList[rowCount].productId);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+
+                strcat(dataToSendClient, productList[rowCount].productName);
+                strcat(dataToSendClient, ",");
+
+                bzero(numsToString,20);
+                sprintf(numsToString,"%d", productList[rowCount].quantity);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+
+                bzero(numsToString,20);
+                sprintf(numsToString,"%d", productList[rowCount].price);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",\n");
+                rowCount++;
+            }
+
+            writeSocket(clientSock,dataToSendClient);
+        }
     }
 }
 
