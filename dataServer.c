@@ -21,11 +21,11 @@
 /*---Function Declarations---*/
 bool validateID(char* buffer, char* dataBase, int* clientSock);
 
-void generateUID(char *arr, char* dataBase);
+int generateUID();
 
 void extractCommand(char *buffer, char *command);
 
-void newClientData(char *buffer);
+void writeNewClientData(char *buffer);
 
 void viewProducts(char *buffer, int* clientSock);
 
@@ -110,9 +110,8 @@ int main() {
                     //OR REQUIRED BUFFER STRING: "[NEW_CLIENT],[SELLER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"
                     if(strstr(command, "[NEW_CLIENT]") != NULL) {
 
-                        printf("New Client!\n");            //for testing
-                        newClientData(buffer);              //send modified buffer to extract contents and write to ConsumerInfo or SellerInfo.txt
-                        writeSocket(&clientSock, "[CONFIRMATION]"); //Send confirmation to clientServer
+                        writeNewClientData(buffer);              //send modified buffer to extract contents and write to ConsumerInfo or SellerInfo.txt
+                        writeSocket(&clientSock, "[CONFIRMATION]"); //Send confirmation to clientServer that info was added
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
@@ -401,15 +400,12 @@ bool validateID(char* buffer, char* dataBase, int* clientSock) {
 
 }
 
-void generateUID(char *arr, char* dataBase) {
+int generateUID() {
 
     srand(time(NULL));
     int idNum = (rand() % 9000) + 1000;
-    sprintf(arr, "%d", idNum);
-    //printf("%s\n", dataBase);
 
-    //check if ID is in dataBase, if not accept, else regenerate
-
+    return idNum;
 }
 
 
@@ -426,8 +422,8 @@ void extractCommand(char *buffer, char *command) {
         sprintf(buffer, "%s\n", ptr);
 }
 
-void newClientData(char *buffer) {
-    char uuid[5] = {0};
+void writeNewClientData(char *buffer) {
+    int uuid;
     char clientType[25] = {0};
     char firstName[25] = {0};
     char lastName[25] = {0};
@@ -437,6 +433,7 @@ void newClientData(char *buffer) {
     char state[25] = {0};
     char zipCode[25] = {0};
     char* ptr;
+    struct csvClientInfo clientDB[maxRowsInDB];
 
     //extract clientType
     ptr = strtok(buffer,",");
@@ -481,12 +478,44 @@ void newClientData(char *buffer) {
     NEW SellerID, FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode
     SEND Confirmation*/
     if (strstr(clientType, "[BUYER]") != NULL) {
-        generateUID(uuid, "CustomerInfo.txt");
-       //updateDatabase(uuid, "CustomerInfo.txt");
+        int lastOccupiedRow = 0;
+
+        uuid = generateUID();
+        loadClientInfo("CustomerInfo.txt", clientDB);
+        while (clientDB[lastOccupiedRow].uuid != 0) {
+            lastOccupiedRow++;
+        }
+        clientDB[lastOccupiedRow+1].uuid = uuid;
+        strcpy(clientDB[lastOccupiedRow+1].firstName, firstName);
+        strcpy(clientDB[lastOccupiedRow+1].lastName, lastName);
+        strcpy(clientDB[lastOccupiedRow+1].streetAddress, streetAddress);
+        strcpy(clientDB[lastOccupiedRow+1].city, city);
+        strcpy(clientDB[lastOccupiedRow+1].state, state);
+        strcpy(clientDB[lastOccupiedRow+1].zipCode, zipCode);
+
+        //TODO: now write clientDB array back to its appropriate source.
     } else {
-        generateUID(uuid, "SellerInfo.txt");
-        //updateDatabase(uuid, "SellerInfo.txt");
+        int lastOccupiedRow = 0;
+
+        uuid = generateUID();
+        loadClientInfo("SellerInfo.txt", clientDB);
+
+        while (clientDB[lastOccupiedRow].uuid != 0) {
+            lastOccupiedRow++;
+        }
+
+        clientDB[lastOccupiedRow+1].uuid = uuid;
+        strcpy(clientDB[lastOccupiedRow+1].firstName, firstName);
+        strcpy(clientDB[lastOccupiedRow+1].lastName, lastName);
+        strcpy(clientDB[lastOccupiedRow+1].streetAddress, streetAddress);
+        strcpy(clientDB[lastOccupiedRow+1].city, city);
+        strcpy(clientDB[lastOccupiedRow+1].state, state);
+        strcpy(clientDB[lastOccupiedRow+1].zipCode, zipCode);
+
+        //TODO: now write clientDB array back to its appropriate source.
     }
+
+
 }
 
 void viewProducts(char *buffer, int* clientSock) {
@@ -510,7 +539,6 @@ void viewProducts(char *buffer, int* clientSock) {
         SEND FILTERED to Seller's ID:  ProductIDs, Product Names, Quantitys, Price/Units*/
     }
 }
-
 
 bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
     char buffer[200] ;
@@ -539,8 +567,6 @@ bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
     }
     return true;
 }
-
-
 
 bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
     char buffer[200] ;
