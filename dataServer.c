@@ -19,7 +19,7 @@
 #include "tcpStuff.h"
 
 /*---Function Declarations---*/
-bool validateID(char* buffer, char* dataBase, int* clientSock);
+bool validateID(char* buffer);
 
 int generateUID();
 
@@ -41,61 +41,19 @@ int main() {
     char command[25];
     pid_t pid;
 
-    struct csvClientInfo sellerData[maxRowsInDB];
-    struct csvClientInfo buyerData[maxRowsInDB];
-    struct csvBillingInfo billingData[maxRowsInDB];
-    struct csvProductInfo productData[maxRowsInDB];
-    struct csvCustomerOrderInfo orderData[maxRowsInDB];
 
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
     bindSocket(&server, &hSocket);                                      // binding socket to address
     listenOnSocket(&hSocket, CLIENT_BACKLOG);                           //Listen for clients, maximum of 3 connections
 
 
-    /*----Forking Clients----*/
+    /*----Forking Clients----  TODO: No longer forking, will use thread pool in future*/
     while (1) {
         if (acceptConnection(&clientSock, &hSocket, &client) == true) { //Accept incoming client connection
             pid = fork();                                               //Fork client process
             if(pid == 0) {                                              //code for child(client) process
                 close(hSocket);
 
-
-
-                //close hSocket, child uses clientSock
-                /*---Establish if client is a Buyer or a Seller---*//*
-                bzero(buffer, MSG_BUFFER_SIZE);
-                readSocket(&clientSock, buffer);
-                if(strstr(buffer, "[BUYER]") != NULL) {
-                    isBuyer = true;
-                } else if (strstr(buffer, "[SELLER]") != NULL) {
-                    isBuyer = false;
-                }
-                bzero(buffer, MSG_BUFFER_SIZE);
-                writeSocket(&clientSock, "[CONFIRMATION]");*/
-
-                /*---Set clientID ---*//*
-                while(!clientIDSet) {
-                    readSocket(&clientSock, buffer);
-                    if(strstr(buffer, "[NEW_CLIENT]") != NULL) {
-                        populateNewClientData(isBuyer, &clientSock, &clientID);
-                        writeSocket(&clientSock, "[CONFIRMATION]");
-                        clientIDSet = true;
-                    } else if (strstr(buffer, "[LOGIN]") != NULL) {
-                        bzero(buffer, MSG_BUFFER_SIZE);
-                        readSocket(&clientSock, buffer); //read UID sent by Client
-                        if(isBuyer) {
-                            if (validateID(buffer, "CustomerInformation.txt", &clientSock)) {
-                                clientID = (int) buffer;
-                                clientIDSet = true;
-                            }
-                        } else {
-                            if (validateID(buffer, "SellerInformation.txt", &clientSock)) {
-                                clientID = (int) buffer;
-                                clientIDSet = true;
-                            }
-                        }
-                    }
-                }*/
 
                 /*---Main Logic Loop: Driven by Client Commands ---*/
 #pragma clang diagnostic push
@@ -117,15 +75,10 @@ int main() {
 
                     /*2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]*/
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
-                        printf("Validating an ID!\n"); //for testing
-                        //validateID(&buffer);
+                        validateID(buffer);
 
                         /*
-                         2. bool validateID(int ID, string DatabaseName) TCP COMMAND: [VALIDATE_ID]
-                            if ID in DatabaseName
-                                return true
-                            else
-                                return false
+
 
                     3. bool validateQuantity(int productID, int orderAmount)<---always checks ProductInfo.txt
                              if productID's quantity in ProductInfo.txt >= orderAmount
@@ -395,11 +348,6 @@ void writeSocket(const int* sock, char* buffer) {
 
 }
 
-
-bool validateID(char* buffer, char* dataBase, int* clientSock) {
-
-}
-
 int generateUID() {
 
     srand(time(NULL));
@@ -407,7 +355,6 @@ int generateUID() {
 
     return idNum;
 }
-
 
 void extractCommand(char *buffer, char *command) {
     char* ptr;
@@ -420,6 +367,66 @@ void extractCommand(char *buffer, char *command) {
 
     if(ptr)
         sprintf(buffer, "%s\n", ptr);
+}
+
+bool validateID(char* buffer) {
+    int idToValidate;
+    char dbName[20];
+    char* point;
+    int rowCount = 0;
+
+    //extract id
+    point = strtok(buffer,",");
+    idToValidate = atoi(point);
+    strcpy(dbName, strtok(NULL, ","));
+
+    if (strstr(dbName, "[BUYER]") != NULL) {
+        struct csvClientInfo buyerList[maxRowsInDB];
+        if (loadClientInfo("CustomerInfo.txt", buyerList)) {
+            while (buyerList[rowCount].uuid != 0) {
+                if (buyerList[rowCount].uuid == idToValidate) {return false; };
+                rowCount++;
+            }
+            return true;
+        }
+        return false; // returns false if a problem or if ID is not present
+    } else if (strstr(dbName, "[SELLER]") != NULL) {
+        struct csvClientInfo sellerList[maxRowsInDB];
+        if (loadClientInfo("CustomerInfo.txt", sellerList)) {
+            while (sellerList[rowCount].uuid != 0) {
+                if (sellerList[rowCount].uuid == idToValidate) { return false; };
+                rowCount++;
+            }
+            return true;
+        }
+        return false;
+    } else if (strstr(dbName, "[PRODUCT]") != NULL) {
+        struct csvProductInfo productList[maxRowsInDB];
+        if (loadProductInfo("ProductInfo.txt", productList)) {
+            while (productList[rowCount].productId != 0) {
+                if (productList[rowCount].productId == idToValidate) { return false; };
+                rowCount++;
+            }
+            return true;
+        }
+        return false;
+    } else if (strstr(dbName, "[BILLING]") != NULL) {
+        struct csvBillingInfo billingList[maxRowsInDB];
+        if (loadBillingInfo("BillingInfo.txt", billingList)) {
+            while (billingList[rowCount].orderId != 0) {
+                if (billingList[rowCount].orderId == idToValidate) { return false; };
+                rowCount++;
+            }
+            return true;
+        }
+        return false;
+    } else return false;
+    // returns false if a problem or if ID is not present
+    /*2. bool validateID(int ID, string DatabaseName) TCP COMMAND: [VALIDATE_ID]
+    if ID in DatabaseName
+    return true
+    else
+    return false*/
 }
 
 void writeNewClientData(char *buffer) {
