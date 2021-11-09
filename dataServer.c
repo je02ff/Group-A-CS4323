@@ -19,9 +19,7 @@
 #include "tcpStuff.h"
 
 
-#define DATA_SERVER_PORT_NUM 8080
-#define CLIENT_BACKLOG 25
-#define MSG_BUFFER_SIZE 10240
+
 
 
 /*---Function Declarations---*/
