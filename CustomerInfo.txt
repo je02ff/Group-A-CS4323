@@ -1,0 +1,4 @@
+1000,Jeff,Roden,1234 Street st.,Edmond,OK,73034
+1001,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033
+1002,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092
+1003,Bruce,Wayne,1 Cave way,Gotham City,NY, 9095

@@ -1,0 +1,4 @@
+1000,Bob,Boberson,1234 Street st.,Berkley,CA,45456
+1001,Tony,Stark,3001 Avenger Tower,NYC,NY,87033
+1002,Bruce,Banner,56 Greenway,Smashville,TN,9092
+1003,Lois,Lane,132 Carter,Tulsa,OK,73034
