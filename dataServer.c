@@ -196,17 +196,17 @@ void writeSocket(const int* sock, char* buffer);
 
 bool validateID(char* buffer, char* dataBase, int* clientSock);
 
-void generateUID(char (*arr)[], char* dataBase);
+void generateUID(char *arr, char* dataBase);
 
-void extractCommand(char (*buffer)[], char (*command)[]);
+void extractCommand(char *buffer, char *command);
 
-void newClientData(char (*buffer)[]);
+void newClientData(char *buffer);
 
-void viewProducts(char (*buffer)[], int* clientSock);
+void viewProducts(char *buffer, int* clientSock);
 
 
 
-        int main() {
+int main() {
     /* TCP Vars */
     int hSocket;
     int clientSock;
@@ -272,15 +272,15 @@ void viewProducts(char (*buffer)[], int* clientSock);
                 while(1) {
                     bzero(buffer, MSG_BUFFER_SIZE);
                     readSocket(&clientSock, buffer);
-                    extractCommand(&buffer, &command);
+                    extractCommand(buffer, command);
 
                     /*1.store new client data  TCP COMMAND: [NEW_CLIENT]*/
-                    //REQUIRED BUFFER STRING: "[NEW_CLIENT],[BUYER],FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode,"  <--notice buffer should end with ','
-                    //OR REQUIRED BUFFER STRING: "[NEW_CLIENT],[SELLER],FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode,"
+                    //REQUIRED BUFFER STRING: "[NEW_CLIENT],[BUYER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"  <--notice buffer should end with ','
+                    //OR REQUIRED BUFFER STRING: "[NEW_CLIENT],[SELLER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"
                     if(strstr(command, "[NEW_CLIENT]") != NULL) {
 
                         printf("New Client!\n");            //for testing
-                        newClientData(&buffer);              //send modified buffer to extract contents and write to ConsumerInfo or SellerInfo.txt
+                        newClientData(buffer);              //send modified buffer to extract contents and write to ConsumerInfo or SellerInfo.txt
                         writeSocket(&clientSock, "[CONFIRMATION]"); //Send confirmation to clientServer
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
@@ -348,7 +348,7 @@ void viewProducts(char (*buffer)[], int* clientSock);
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
                         printf("View products!\n"); //for testing
 
-                        viewProducts(&buffer, &clientSock);
+                        viewProducts(buffer, &clientSock);
 
 
 
@@ -357,7 +357,7 @@ void viewProducts(char (*buffer)[], int* clientSock);
                         printf("Completing Order!\n"); //for testing
 
                         /*READ ProductInfo.txt validate given ProductID's AND Quantities
-                        //validateID(ProductID, "ProductInfo.txt")
+                        //validateID roductID, "ProductInfo.txt")
                         //validateQuantity(int ProductID, int quantity)
 
                         IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt
@@ -367,6 +367,7 @@ void viewProducts(char (*buffer)[], int* clientSock);
 
 
                     /*5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]*/
+
                     } else if(strstr(command, "[VIEW_BUYER_ORDERS]") != NULL) {
                         printf("View Buyer Order!\n"); //for testing
 
@@ -569,11 +570,11 @@ bool validateID(char* buffer, char* dataBase, int* clientSock) {
 
 }
 
-void generateUID(char (*arr)[], char* dataBase) {
+void generateUID(char *arr, char* dataBase) {
 
     srand(time(NULL));
     int idNum = (rand() % 9000) + 1000;
-    sprintf(*arr, "%d", idNum);
+    sprintf(arr, "%d", idNum);
     //printf("%s\n", dataBase);
 
     //check if ID is in dataBase, if not accept, else regenerate
@@ -581,20 +582,20 @@ void generateUID(char (*arr)[], char* dataBase) {
 }
 
 
-void extractCommand(char (*buffer)[], char (*command)[]) {
+void extractCommand(char *buffer, char *command) {
     char* ptr;
-    ptr = strtok(*buffer,",");
+    ptr = strtok(buffer,",");
 
     if(ptr) {
-        sprintf(*command, "%s", ptr);
+        sprintf(command, "%s", ptr);
     }
     ptr = strtok(NULL, "");
 
     if(ptr)
-        sprintf(*buffer, "%s\n", ptr);
+        sprintf(buffer, "%s\n", ptr);
 }
 
-void newClientData(char (*buffer)[]) {
+void newClientData(char *buffer) {
     char uuid[5] = {0};
     char clientType[25] = {0};
     char firstName[25] = {0};
@@ -607,7 +608,7 @@ void newClientData(char (*buffer)[]) {
     char* ptr;
 
     //extract clientType
-    ptr = strtok(*buffer,",");
+    ptr = strtok(buffer,",");
     sprintf(clientType, "%s", ptr);
 
     //extract firstName
@@ -649,25 +650,25 @@ void newClientData(char (*buffer)[]) {
     NEW SellerID, FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode
     SEND Confirmation*/
     if (strstr(clientType, "[BUYER]") != NULL) {
-        generateUID(&uuid, "CustomerInfo.txt");
+        generateUID(uuid, "CustomerInfo.txt");
        //updateDatabase(uuid, "CustomerInfo.txt");
     } else {
-        generateUID(&uuid, "SellerInfo.txt");
+        generateUID(uuid, "SellerInfo.txt");
         //updateDatabase(uuid, "SellerInfo.txt");
     }
 }
 
-void viewProducts(char (*buffer)[], int* clientSock) {
+void viewProducts(char *buffer, int* clientSock) {
     char uuid[5] = {0};
     char clientType[25] = {0};
     char* ptr;
 
     //extract clientType
-    ptr = strtok(*buffer,",");
+    ptr = strtok(buffer,",");
     sprintf(clientType, "%s", ptr);
 
     //extract uuID
-    ptr = strtok(*buffer,",");
+    ptr = strtok(buffer,",");
     sprintf(uuid, "%s", ptr);
 
     if (strstr(clientType, "[BUYER]") != NULL) { //IF Buyer
