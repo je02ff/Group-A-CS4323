@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <assert.h>
 #include <semaphore.h>
+#include "readDatabaseIntoArray.h"
 
 
 #define DATA_SERVER_PORT_NUM 8080
@@ -215,6 +216,12 @@ int main() {
     char buffer[MSG_BUFFER_SIZE];
     char command[25];
     pid_t pid;
+
+    struct csvClientInfo sellerData[maxRowsInDB];
+    struct csvClientInfo buyerData[maxRowsInDB];
+    struct csvBillingInfo billingData[maxRowsInDB];
+    struct csvProductInfo productData[maxRowsInDB];
+    struct csvCustomerOrderInfo orderData[maxRowsInDB];
 
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
     bindSocket(&server, &hSocket);                                      // binding socket to address
@@ -678,4 +685,122 @@ void viewProducts(char *buffer, int* clientSock) {
         /*READ ProductInfo.txt
         SEND FILTERED to Seller's ID:  ProductIDs, Product Names, Quantitys, Price/Units*/
     }
+}
+
+
+bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/SellerInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            strcpy(table[rowCount].uuid, record);
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+
+
+bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/ProductInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            strcpy(table[rowCount].productId, record);
+            strcpy(table[rowCount].productName, strtok(NULL,","));
+            strcpy(table[rowCount].sellerId, strtok(NULL,","));
+            strcpy(table[rowCount].quantity, strtok(NULL,","));
+            strcpy(table[rowCount].price, strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/CustomerOrder.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            strcpy(table[rowCount].orderId, record);
+            strcpy(table[rowCount].productId, strtok(NULL,","));
+            strcpy(table[rowCount].quantityPurchased, strtok(NULL,","));
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            strcpy(table[rowCount].totalPrice, strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/BillingInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            strcpy(table[rowCount].orderId, record);
+            strcpy(table[rowCount].customerId, strtok(NULL,","));
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            strcpy(table[rowCount].totalOrderCost, strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
 }

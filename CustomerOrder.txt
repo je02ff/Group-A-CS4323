@@ -1,9 +1,5 @@
-
-orderID;productId;quantityPurchased;firstName;lastName;streetAddress;city;state;zipCode;totalPrice;  //quantityPurchased * itemPrice
-1000,2000,20,Bruce,Wayne,1 Cave way,Gotham City,NY,9095,400.00
-1000,2002,30,Bruce,Wayne,1 Cave way,Gotham City,NY,9095,30.00
-
-1001,2004,10,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,5.00
-1001,2001,2,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,20000.00
-
-1002,2006,1,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033,10.00
+3000,2000,20,Bruce,Wayne,1 Cave way,Gotham City,NY,9095,400.00,
+3000,2002,30,Bruce,Wayne,1 Cave way,Gotham City,NY,9095,30.00,
+3001,2004,10,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,5.00,
+3001,2001,2,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,20000.00,
+3002,2006,1,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033,10.00,

@@ -1,3 +1,3 @@
-3000,1001,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033
-3001,1002,Peter,Parker,3243 Spadermen Lane, NYC, New York, 9092
-3002,1003,Bruce,Wayne,1 Cave way,Gotham City,NY, 9095
+3000,1001,Bruce,Wayne,1 Cave way,Gotham City,NY,9095,430.00,
+3001,1002,Peter,Parker,3243 Spadermen Lane, NYC, New York, 9092,20005.00,
+3002,1003,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033,10.00,
