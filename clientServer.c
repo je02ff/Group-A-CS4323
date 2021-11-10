@@ -4,9 +4,13 @@
     Email: jeremiah.pete@okstate.edu
 
     Program Description: This file handles the structuring of the client side of the program,
-    both the buyer and seller   */
+    both the buyer and seller   
+    
+    To run file individually, use command "gcc -o clientServer clientServer.c -lpthread" */
 
 #include "clientServer.h"
+
+sem_t lock; // initialize lock for loading data properly
 
 /*  function to display and handle the initial menu of the program
     params: none 
@@ -104,7 +108,7 @@ void sellerLogin() {
                 //system("clear");
                 userRegister(type);
             case 2: // login with sellerID
-                //sellerIDLogin();
+                //IDLogin();
             case 3: // go back to the initial menu
                 //system("clear");
                 initialMenu();
@@ -179,6 +183,7 @@ void IDLogin(int type) {
     returns: void */
 void buyerMenu() {
     int select;
+    int type = 0; // to distinguish from seller
 
     //system("clear");
     printf("\n\nBuyer Menu:\n\nPlease select an option -\n\n");
@@ -199,15 +204,15 @@ void buyerMenu() {
         // use switch case for handling
         switch (select) {
             case 1: // make an order
-                //makeOrder();
+                makeOrder();
             case 2: // view orders
-                //viewOrder();
+                viewOrder();
             case 3: // modify order
-                //modifyOrder();
+                modifyOrder();
             case 4: // view billing info
-                //viewBill();
+                viewBill();
             case 5: // edit info
-                //editInfo();
+                editInfo(type);
             case 6: // back to main menu
                 initialMenu();
             case 7: // exit case
@@ -218,11 +223,151 @@ void buyerMenu() {
     }
 }
 
+/*  function to let buyer make an order
+    params: none
+    returns: void */
+void makeOrder() {
+    int select;
+
+    // display options to user
+    while(1) {
+        printf("1. View Available Products\n");
+        printf("2. Add Product to Order\n");
+        printf("3. Complete Order\n");
+        printf("4. Cancel/Back to Buyer Menu\n");
+        printf("5. Terminate Program\n\n");
+        printf("Selection: ");
+
+        scanf("%d", &select); // get selection
+
+        // handle selection
+        switch (select) {
+            case 1: // view available products
+                viewProducts();
+            case 2: // add to order
+                addProduct();
+            case 3: // complete order
+                completeOrder();
+            case 4: // back to buyer menu
+                buyerMenu();
+            case 5: // exit program
+                printf("\nProgram Terminated\n");
+                exit(0);
+            default:
+                printf("\n\nPlease select a proper choice!\n\n");
+        }
+    }
+}
+
+/*  funtion to let buyer view orders, behaves similar to a thread and uses semaphores
+    params: none
+    returns: void */
+void viewOrder() {
+    sem_wait(&lock); // wait
+    printf("\nCritical Section Entered...\n"); // just a test
+    // critical section will validate ID 
+    /*** TODO: lock BillingInfo.txt and load necessary data into buffer for display ***/
+    printf("\nExiting Critical Section\n");
+    sem_post(&lock); // signal to exit crit section
+}
+
+/*  function to let buyer modify order
+    params: none
+    returns: void */
+void modifyOrder() {
+    /*** TODO: lock BillingInfo.txt and check if the ID is valid ***/
+}
+
+/*  function to let buyer view billing info 
+    params: none
+    returns: void */
+void viewBill() {
+    /*** TODO: lock CustomerInfo.txt and load data into buffer ***/
+}
+
+/*  function to edit stored info
+    params: none
+    returns: void */
+void editInfo(int type) {
+    /*** TODO: let user edit their info as necessary, maybe use params to help transfer data ***/
+    // initialize variables to be used
+    char newName[100];
+    char newNum[50];
+    char newAddress[100];
+    int select;
+
+    printf("1. Edit Name\n");
+    printf("2. Edit Number\n");
+    printf("3. Edit Address\n");
+    printf("4. Go Back\n\n");
+    printf("Selection: ");
+    // get input from user
+    scanf("%d", &select);
+
+    switch (select) {
+        case 1: // edit name
+            printf("\nEnter New Name: ");
+            scanf(" %[^\n]", newName);
+            printf("New name entered, hello %s!", newName);
+        case 2: // edit number
+            printf("\nEnter New Number: ");
+            scanf(" %[^\n]", newNum);
+            printf("New number entered, %s", newNum);
+        case 3: // edit address
+            printf("\nEnter New Address: ");
+            scanf(" %[^\n]", newAddress);
+            printf("New address entered, %s", newAddress);
+        case 4: // return to whichever menu came from
+            if (type == 0)
+                buyerMenu();
+            else
+                sellerMenu();
+    }
+}
+
+/*  function to let buyer complete their order 
+    params: none
+    returns: void */
+void completeOrder() {
+
+}
+
+/*  function to let seller view products
+    params: none 
+    returns: void */
+void viewProducts() {
+    /*** TODO: lock ProductInfo.txt, load data into buffer, return to menu ***/
+    // data = (ProductID, ProductName, Quantity, Price/Unit)
+}
+
+/*  function for seller to add product to list 
+    params: none
+    returns: void */
+void addProduct() {
+    // initialize storage values to be read
+    char product[100];
+    char quantity[10];
+    char price[10];
+
+    // get product name
+    printf("Enter Product Name: ");
+    scanf(" %[^\n]", product);
+
+    // get quantity amount
+    printf("Enter Quantity: ");
+    scanf(" %[^\n]", quantity);
+
+    // get price amount 
+    printf("Enter Price/Unit: ");
+    scanf(" %[^\n]", price);
+}
+
 /*  function to handle the seller menu model once successfully logged in
     params: none
     returns: void */
 void sellerMenu() {
     int select;
+    int type = 1; // to distinguish from buyer
 
     //system("clear");
     printf("\n\nSeller Menu:\n\nPlease select an option -\n\n");
@@ -245,19 +390,19 @@ void sellerMenu() {
         // use switch case for handling
         switch (select) {
             case 1: // view offered products
-                //viewProducts();
+                viewProducts();
             case 2: // add new product 
-                //addProduct();
+                addNewProduct();
             case 3: // delete product
-                //deleteProduct();
+                deleteProduct();
             case 4: // modify quantity
-                //modifyQuantity();
+                modifyQuantity();
             case 5: //  modify price
-                //modifyPrice();
+                modifyPrice();
             case 6: // view product orders
-                //viewOrder();
+                viewOrder();
             case 7: // edit seller info
-                //editInfo();
+                editInfo(type);
             case 8: // return to main menu
                 initialMenu();
             case 9: // exit case
@@ -269,17 +414,33 @@ void sellerMenu() {
     }
 }
 
-/*** TODO: functions that still need to be implemented ***/
-void makeOrder();
-void viewOrder();
-void modifyOrder();
-void viewBill();
-void editInfo();
-void viewProducts();
-void addProduct();
-void deleteProduct();
-void modifyQuantity();
-void modifyPrice();
+/*  function for seller to add new product to list 
+    params: none
+    returns: void */
+void addNewProduct() {
+
+}
+
+/*  function to delete product from database
+    params: none
+    returns: void */
+void deleteProduct() {
+
+}
+
+/*  function to modify the quantity available of an item
+    params: none
+    returns: void */
+void modifyQuantity() {
+
+}
+
+/*  function to modify the price of an item
+    params: the item to be selected
+    returns: the new price of the item (void) */
+void modifyPrice() {
+
+}
 
 // main function to test functions
 int main() {
