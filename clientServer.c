@@ -329,7 +329,7 @@ void editInfo(int type) {
     params: none
     returns: void */
 void completeOrder() {
-
+    /*** TODO: Lock ProductInfo.txt and validate ID and quantity, perform updates ***/
 }
 
 /*  function to let seller view products
@@ -418,28 +418,72 @@ void sellerMenu() {
     params: none
     returns: void */
 void addNewProduct() {
+    // initialize variables
+    char name[100];
+    char quantity[100];
+    char price[10];
 
+    // get product name
+    printf("Enter Product Name: ");
+    scanf(" %[^\n]", name);
+
+    // get product quantity
+    printf("Enter Quantity Available: ");
+    scanf(" %[^\n]", quantity);
+
+    // get product price
+    printf("Enter Product Price: ");
+    scanf(" %[^\n]", price);
+
+    /*** TODO: Lock ProductInfo.txt, load info into buffer, unlock ProductInfo.txt and send the data through ***/
 }
 
 /*  function to delete product from database
     params: none
     returns: void */
 void deleteProduct() {
+    char ID;
 
+    printf("Enter ProductID to Remove: ");
+    scanf("%c", &ID);
+
+    /*** TODO: Update CustomerOrder and get total price in order to modify value ***/
 }
 
 /*  function to modify the quantity available of an item
     params: none
     returns: void */
 void modifyQuantity() {
+    char ID;
+    int quantity;
 
+    printf("Enter ProductID to Adjust: ");
+    scanf("%c", &ID);
+
+    /*** TODO: Locate Product from database ***/
+
+    printf("Enter quantity to set it to: ");
+    scanf("%d", &quantity);
+
+    /*** TODO: Lock ProductInfo.txt, validate ID, etc ***/
 }
 
 /*  function to modify the price of an item
     params: the item to be selected
     returns: the new price of the item (void) */
 void modifyPrice() {
+    char ID;
+    int price;
 
+    printf("Enter ProductID to Adjust: ");
+    scanf("%c", &ID);
+
+    /*** TODO: Locate Product from database ***/
+
+    printf("Enter price to set it to: ");
+    scanf("%d", &price);
+
+    /*** TODO: Lock ProductInfo.txt, validate ID, etc ***/
 }
 
 // main function to test functions
