@@ -56,6 +56,11 @@ struct csvCustomerOrderInfo {
     int totalPrice;  //quantityPurchased * itemPrice
 };
 
+struct itemOrder {
+    int productID;
+    int quantity;
+};
+
 /*--loads buyer or seller data into a table, keys off of dbFile name to determine which --*/
 bool loadClientInfo(char* dbFile, struct csvClientInfo table[]);
 

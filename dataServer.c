@@ -18,7 +18,7 @@
 #include "readDatabaseIntoArray.h"
 #include "tcpStuff.h"
 
-/*---Function Declarations---*/
+/*---Server Command Declarations---*/
 bool validateID(char* buffer);
 
 int generateUID();
@@ -29,6 +29,11 @@ void writeNewClientData(char *buffer);
 
 void viewProducts(char *buffer, int* clientSock);
 
+void extractBuyerOrder(char* buffer, struct itemOrder orderList[]);
+
+bool validateBuyerOrder(struct itemOrder orderList[]);
+
+void completeAnOrder(char *buffer, int* clientSock);
 
 
 int main() {
@@ -75,6 +80,7 @@ int main() {
 
                     /*2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]*/
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
+
                         validateID(buffer);
 
                         /*
@@ -129,18 +135,15 @@ int main() {
                     //REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],"
                     //OR REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[SELLER],uuid,"
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
-                        printf("View products!\n"); //for testing
 
                         viewProducts(buffer, &clientSock);
 
-
-
                     /*4. BuyerOPTION 1-3 Complete Order TCP COMMAND: [COMPLETE_ORDER]*/
                     } else if(strstr(command, "[COMPLETE_ORDER]") != NULL) {
-                        printf("Completing Order!\n"); //for testing
+
 
                         /*READ ProductInfo.txt validate given ProductID's AND Quantities
-                        //validateID roductID, "ProductInfo.txt")
+                        //validateID productID, "ProductInfo.txt")
                         //validateQuantity(int ProductID, int quantity)
 
                         IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt
@@ -152,7 +155,7 @@ int main() {
                     /*5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]*/
 
                     } else if(strstr(command, "[VIEW_BUYER_ORDERS]") != NULL) {
-                        printf("View Buyer Order!\n"); //for testing
+
 
                         /*READ BillingInfo.txt
                         SEND OrderID, Total Order Price*/
@@ -160,7 +163,7 @@ int main() {
 
                     /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
                     } else if(strstr(command, "[MOD_ORDER]") != NULL) {
-                        printf("Modifying an Order!\n"); //for testing
+
 
                         /*OrderID -- present in READ BillingInfo.txt //validateID(OrderID, "BillingInfo.txt")
                         IF OK --> READ CustomerOrder.txt AND READ BillingInfo.txt
@@ -178,7 +181,7 @@ int main() {
 
                     /*7. BuyerOPTION 4 View Billing Info TCP COMMAND: [VIEW_BILLING]*/
                     } else if(strstr(command, "[VIEW_BILLING]") != NULL) {
-                        printf("Buyer Viewing Billing Info!\n"); //for testing
+
 
                        /* READ CustomerInfo.txt
                         SEND Name, Number, Address*/
@@ -186,7 +189,7 @@ int main() {
 
                     /*8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]*/
                     } else if(strstr(command, "[EDIT_INFO]") != NULL) {
-                        printf("Editing Info!\n"); //for testing
+
 
                         /* READ CustomerInfo.txt
                          IF Buyer
@@ -215,7 +218,7 @@ int main() {
 
                     /*9. SellerOPTION 2 Add New Product TCP COMMAND: [NEW_PRODUCT]*/
                     } else if(strstr(command, "[NEW_PRODUCT]") != NULL) {
-                        printf("Seller adding a new product!\n"); //for testing
+
                        /* WRITE ProductInfo.txt
                         new ProductID, productName, SellerID, Quantity, Price/Unit
                         SEND Confirmation*/
@@ -223,7 +226,7 @@ int main() {
 
                     /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
                     } else if(strstr(command, "[DELETE_PROD]") != NULL) {
-                        printf("Seller deleting a product!\n"); //for testing
+
                         /* READ ProductInfo.txt
                         validate ProductID //validateID(productID, ProductInfo.txt) TCP COMMAND:
 
@@ -287,7 +290,7 @@ int main() {
     return 0;
 }
 
-/*---Function Definitions---*/
+/*---TCP Stuff---*/
 
 void createSocket(int *sock) {
     *sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -347,6 +350,125 @@ void writeSocket(const int* sock, char* buffer) {
     }
 
 }
+
+/*---Database Table Loaders---*/
+
+bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/SellerInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            table[rowCount].uuid = atoi(record);
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/ProductInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            table[rowCount].productId = atoi(record);
+            strcpy(table[rowCount].productName, strtok(NULL,","));
+            table[rowCount].sellerId = atoi(strtok(NULL,","));
+            table[rowCount].quantity =  atoi(strtok(NULL,","));
+            table[rowCount].price = atoi(strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/CustomerOrder.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            table[rowCount].orderId = atoi(record);
+            table[rowCount].productId = atoi(strtok(NULL,","));
+            table[rowCount].quantityPurchased = atoi(strtok(NULL,","));
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            table[rowCount].totalPrice = atoi(strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]) {
+    char buffer[200] ;
+    char *record,*line;
+    int rowCount = 0;
+
+    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/BillingInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+
+    if(fstream == NULL) {
+        return false;
+    }
+
+    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
+        record = strtok(line,",");
+        while(record != NULL) {
+            table[rowCount].orderId = atoi(record);
+            table[rowCount].customerId = atoi(strtok(NULL,","));
+            strcpy(table[rowCount].firstName, strtok(NULL,","));
+            strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
+            strcpy(table[rowCount].city, strtok(NULL,","));
+            strcpy(table[rowCount].state, strtok(NULL,","));
+            strcpy(table[rowCount].zipCode, strtok(NULL,","));
+            table[rowCount].totalOrderCost = atoi(strtok(NULL,","));
+            record = NULL;
+            rowCount++;
+        }
+    }
+    return true;
+}
+
+/*---Data Server Commands---*/
 
 int generateUID() {
 
@@ -597,117 +719,78 @@ void viewProducts(char *buffer, int* clientSock) {
     }
 }
 
-bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
-    char buffer[200] ;
-    char *record,*line;
-    int rowCount = 0;
+void extractBuyerOrder(char* buffer, struct itemOrder orderList[]) {
+    char* ptr;
+    int rowOrder = 0;
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/SellerInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+    ptr = strtok(buffer, ",");
+    while(atoi(ptr) != 0) {
 
-    if(fstream == NULL) {
-        return false;
+        orderList[rowOrder].productID = atoi(ptr);
+        ptr = strtok(NULL, ",");
+        orderList[rowOrder].quantity = atoi(ptr);
+        ptr = strtok(NULL, ",");
+        rowOrder++;
     }
 
-    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
-        record = strtok(line,",");
-        while(record != NULL) {
-            table[rowCount].uuid = atoi(record);
-            strcpy(table[rowCount].firstName, strtok(NULL,","));
-            strcpy(table[rowCount].lastName, strtok(NULL,","));
-            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
-            strcpy(table[rowCount].city, strtok(NULL,","));
-            strcpy(table[rowCount].state, strtok(NULL,","));
-            strcpy(table[rowCount].zipCode, strtok(NULL,","));
-            record = NULL;
-            rowCount++;
+}
+
+bool validateBuyerOrder(struct itemOrder orderList[]) {
+
+    bool idFound = false;
+    struct csvProductInfo productList[maxRowsInDB];
+    int rowsInOrderList = 0;
+    int rowsInProductList = 0;
+
+    loadProductInfo("ProductInfo.txt", productList);
+    while (productList[rowsInProductList].productId != 0) {
+        rowsInProductList++;
+    }
+    while (orderList[rowsInOrderList].productID != 0) {
+        rowsInOrderList++;
+    }
+
+    for(int i = 0; i <= rowsInOrderList; i++) {
+        for(int j = 0; j <= rowsInProductList; j++) {
+            if(orderList[i].productID == productList[j].productId) {
+                idFound = true;
+                if (orderList[i].quantity > productList[j].quantity) return false;
+            }
         }
+        if(!idFound) return false;
+        else idFound = false;
     }
+
     return true;
 }
 
-bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
-    char buffer[200] ;
-    char *record,*line;
-    int rowCount = 0;
+void completeAnOrder(char *buffer, int* clientSock) {
+    //Required Buffer String: "[COMPLETE_ORDER],int buyerID,int productID,int quantityOrdered,int productID,int quantityOrdered,...,"
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/ProductInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+    int buyerID;
+    struct itemOrder orderList[100];
+    char* ptr;
+    struct csvClientInfo clientDB[maxRowsInDB];
 
-    if(fstream == NULL) {
-        return false;
-    }
+    buyerID = atoi(strtok(buffer,","));
 
-    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
-        record = strtok(line,",");
-        while(record != NULL) {
-            table[rowCount].productId = atoi(record);
-            strcpy(table[rowCount].productName, strtok(NULL,","));
-            table[rowCount].sellerId = atoi(strtok(NULL,","));
-            table[rowCount].quantity =  atoi(strtok(NULL,","));
-            table[rowCount].price = atoi(strtok(NULL,","));
-            record = NULL;
-            rowCount++;
-        }
-    }
-    return true;
+    ptr = strtok(NULL, "");
+    sprintf(buffer, "%s\n", ptr);
+
+    extractBuyerOrder(buffer, orderList);
+
+    if(validateBuyerOrder(orderList)) {
+        //TODO write orderList to CustomerOrder.txt and BillingInfo.txt
+        writeSocket(clientSock, "[CONFIRMATION]");
+    } else writeSocket(clientSock, "[INVALID]");
+
+    /*READ ProductInfo.txt validate given ProductID's AND Quantities
+    //validateID productID, "ProductInfo.txt")
+    //validateQuantity(int ProductID, int quantity)
+
+    IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt
+        SEND Order Conformation
+    ELSE Invalid
+        SEND Order Invalid*/
 }
 
-bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
-    char buffer[200] ;
-    char *record,*line;
-    int rowCount = 0;
-
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/CustomerOrder.txt","r"); //TODO: REINSERT dbFILE for PATH
-
-    if(fstream == NULL) {
-        return false;
-    }
-
-    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
-        record = strtok(line,",");
-        while(record != NULL) {
-            table[rowCount].orderId = atoi(record);
-            table[rowCount].productId = atoi(strtok(NULL,","));
-            table[rowCount].quantityPurchased = atoi(strtok(NULL,","));
-            strcpy(table[rowCount].firstName, strtok(NULL,","));
-            strcpy(table[rowCount].lastName, strtok(NULL,","));
-            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
-            strcpy(table[rowCount].city, strtok(NULL,","));
-            strcpy(table[rowCount].state, strtok(NULL,","));
-            strcpy(table[rowCount].zipCode, strtok(NULL,","));
-            table[rowCount].totalPrice = atoi(strtok(NULL,","));
-            record = NULL;
-            rowCount++;
-        }
-    }
-    return true;
-}
-
-bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]) {
-    char buffer[200] ;
-    char *record,*line;
-    int rowCount = 0;
-
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/BillingInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
-
-    if(fstream == NULL) {
-        return false;
-    }
-
-    while((line=fgets(buffer,sizeof(buffer),fstream))!=NULL) {
-        record = strtok(line,",");
-        while(record != NULL) {
-            table[rowCount].orderId = atoi(record);
-            table[rowCount].customerId = atoi(strtok(NULL,","));
-            strcpy(table[rowCount].firstName, strtok(NULL,","));
-            strcpy(table[rowCount].lastName, strtok(NULL,","));
-            strcpy(table[rowCount].streetAddress, strtok(NULL,","));
-            strcpy(table[rowCount].city, strtok(NULL,","));
-            strcpy(table[rowCount].state, strtok(NULL,","));
-            strcpy(table[rowCount].zipCode, strtok(NULL,","));
-            table[rowCount].totalOrderCost = atoi(strtok(NULL,","));
-            record = NULL;
-            rowCount++;
-        }
-    }
-    return true;
-}
