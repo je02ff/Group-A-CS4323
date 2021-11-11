@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <strings.h>
 #include <string.h>
@@ -17,23 +18,10 @@
 #include <semaphore.h>
 #include "readDatabaseIntoArray.h"
 #include "tcpStuff.h"
+#include "dataServer.h"
 
 /*---Server Command Declarations---*/
-bool validateID(char* buffer);
 
-int generateUID();
-
-void extractCommand(char *buffer, char *command);
-
-void writeNewClientData(char *buffer);
-
-void viewProducts(char *buffer, int* clientSock);
-
-void extractBuyerOrder(char* buffer, struct itemOrder orderList[]);
-
-bool validateBuyerOrder(struct itemOrder orderList[]);
-
-void completeAnOrder(char *buffer, int* clientSock);
 
 
 int main() {
@@ -358,7 +346,7 @@ bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
     char *record,*line;
     int rowCount = 0;
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/SellerInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+    FILE *fstream = fopen(dbFile,"r");
 
     if(fstream == NULL) {
         return false;
@@ -381,12 +369,12 @@ bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
     return true;
 }
 
-bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
+bool loadProductInfo(struct csvProductInfo table[]) {
     char buffer[200] ;
     char *record,*line;
     int rowCount = 0;
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/ProductInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
+    FILE *fstream = fopen("/ProductInfo.txt","r");
 
     if(fstream == NULL) {
         return false;
@@ -407,12 +395,12 @@ bool loadProductInfo(char* dbFile, struct csvProductInfo table[]) {
     return true;
 }
 
-bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
+bool loadCustomerOrderInfo(struct csvCustomerOrderInfo table[]) {
     char buffer[200] ;
     char *record,*line;
     int rowCount = 0;
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/CustomerOrder.txt","r"); //TODO: REINSERT dbFILE for PATH
+    FILE *fstream = fopen("CustomerOrder.txt","r");
 
     if(fstream == NULL) {
         return false;
@@ -438,13 +426,12 @@ bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]) {
     return true;
 }
 
-bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]) {
+bool loadBillingInfo(struct csvBillingInfo table[]) {
     char buffer[200] ;
     char *record,*line;
     int rowCount = 0;
 
-    FILE *fstream = fopen("/home/jeff/CLionProjects/Group-A-CS4323/BillingInfo.txt","r"); //TODO: REINSERT dbFILE for PATH
-
+    FILE *fstream = fopen("BillingInfo.txt","r");
     if(fstream == NULL) {
         return false;
     }
@@ -524,7 +511,7 @@ bool validateID(char* buffer) {
         return false;
     } else if (strstr(dbName, "[PRODUCT]") != NULL) {
         struct csvProductInfo productList[maxRowsInDB];
-        if (loadProductInfo("ProductInfo.txt", productList)) {
+        if (loadProductInfo(productList)) {
             while (productList[rowCount].productId != 0) {
                 if (productList[rowCount].productId == idToValidate) { return false; };
                 rowCount++;
@@ -534,7 +521,7 @@ bool validateID(char* buffer) {
         return false;
     } else if (strstr(dbName, "[BILLING]") != NULL) {
         struct csvBillingInfo billingList[maxRowsInDB];
-        if (loadBillingInfo("BillingInfo.txt", billingList)) {
+        if (loadBillingInfo(billingList)) {
             while (billingList[rowCount].orderId != 0) {
                 if (billingList[rowCount].orderId == idToValidate) { return false; };
                 rowCount++;
@@ -663,7 +650,7 @@ void viewProducts(char *buffer, int* clientSock) {
     if (strstr(clientType, "[BUYER]") != NULL) {
         //SEND ALL: ProductIDs, Product Names, Quantitys, Price/Units*/
         struct csvProductInfo productList[maxRowsInDB];
-        if (loadProductInfo("ProductInfo.txt", productList)) {
+        if (loadProductInfo(productList)) {
             while(productList[rowCount].productId != 0) {
                 sprintf(numsToString,"%d", productList[rowCount].productId);
                 strcat(dataToSendClient, numsToString);
@@ -693,7 +680,7 @@ void viewProducts(char *buffer, int* clientSock) {
 
         int requestingSellerID = atoi(strtok(buffer,","));
         struct csvProductInfo productList[maxRowsInDB];
-        if (loadProductInfo("ProductInfo.txt", productList)) {
+        if (loadProductInfo(productList)) {
             while(productList[rowCount].productId != 0 && productList[rowCount].sellerId != requestingSellerID) {
                 sprintf(numsToString,"%d", productList[rowCount].productId);
                 strcat(dataToSendClient, numsToString);
@@ -730,20 +717,20 @@ void extractBuyerOrder(char* buffer, struct itemOrder orderList[]) {
         ptr = strtok(NULL, ",");
         orderList[rowOrder].quantity = atoi(ptr);
         ptr = strtok(NULL, ",");
+        orderList[rowOrder].itemCostPerUnit = atoi(ptr);
+        ptr = strtok(NULL, ",");
         rowOrder++;
     }
 
 }
 
-bool validateBuyerOrder(struct itemOrder orderList[]) {
+bool validateBuyerOrder(struct itemOrder orderList[], struct csvProductInfo *pList) {
 
     bool idFound = false;
-    struct csvProductInfo productList[maxRowsInDB];
     int rowsInOrderList = 0;
     int rowsInProductList = 0;
 
-    loadProductInfo("ProductInfo.txt", productList);
-    while (productList[rowsInProductList].productId != 0) {
+    while (pList[rowsInProductList].productId != 0) {
         rowsInProductList++;
     }
     while (orderList[rowsInOrderList].productID != 0) {
@@ -752,9 +739,9 @@ bool validateBuyerOrder(struct itemOrder orderList[]) {
 
     for(int i = 0; i <= rowsInOrderList; i++) {
         for(int j = 0; j <= rowsInProductList; j++) {
-            if(orderList[i].productID == productList[j].productId) {
+            if(orderList[i].productID == pList[j].productId) {
                 idFound = true;
-                if (orderList[i].quantity > productList[j].quantity) return false;
+                if (orderList[i].quantity > pList[j].quantity) return false;
             }
         }
         if(!idFound) return false;
@@ -764,13 +751,101 @@ bool validateBuyerOrder(struct itemOrder orderList[]) {
     return true;
 }
 
-void completeAnOrder(char *buffer, int* clientSock) {
-    //Required Buffer String: "[COMPLETE_ORDER],int buyerID,int productID,int quantityOrdered,int productID,int quantityOrdered,...,"
+void writeNewProductQuantityFromOrder(struct itemOrder *orderList, struct csvProductInfo *pList) {
+    int rowsInOrderList = 0;
+    int rowCounter = 0;
 
+    while (orderList[rowsInOrderList].productID != 0) {
+        rowsInOrderList++;
+    }
+
+    for (int i = 0; i < rowsInOrderList; i++) {
+        while(orderList[i].productID != pList[rowCounter].productId) {
+            rowCounter++;
+        }
+        pList[rowCounter].quantity -= orderList[i].quantity;
+        rowCounter = 0;
+    }
+
+    //TODO write pList to ProductInfo.txt
+}
+
+int writeOrderToBillingInfo(struct csvClientInfo buyerData, struct itemOrder *orderList, struct csvBillingInfo *billingList) {
+    int rowToWriteRecord = 0;
+    int totalOrderCost = 0;
+    int productListRow = 0;
+
+    //Find last occupied record in BillingInfo.txt
+    while(billingList[rowToWriteRecord].orderId != 0) {
+        rowToWriteRecord++;
+    }
+    //Total the cost of all the ordered products
+    while(orderList[productListRow].productID != 0) {
+        totalOrderCost += (orderList[productListRow].quantity * orderList[productListRow].itemCostPerUnit);
+        productListRow++;
+    }
+
+    //Add thew new order to table
+    billingList[rowToWriteRecord].orderId = generateUID();
+    billingList[rowToWriteRecord].customerId = buyerData.uuid;
+    strcpy(billingList[rowToWriteRecord].firstName, buyerData.firstName);
+    strcpy(billingList[rowToWriteRecord].lastName, buyerData.lastName);
+    strcpy(billingList[rowToWriteRecord].streetAddress, buyerData.streetAddress);
+    strcpy(billingList[rowToWriteRecord].city, buyerData.city);
+    strcpy(billingList[rowToWriteRecord].state, buyerData.state);
+    strcpy(billingList[rowToWriteRecord].zipCode, buyerData.zipCode);
+    billingList[rowToWriteRecord].totalOrderCost = totalOrderCost;
+
+    //write table to text file
+    //TODO pass billingList to function that writes it to BillingInfo.txt
+
+    return billingList[rowToWriteRecord].orderId;
+}
+
+void writeOrderToCustomerOrder(int orderID, struct csvClientInfo buyerData, struct itemOrder orderList[], struct csvCustomerOrderInfo customerOrders[]) {
+    int lastRecordRow = 0;
+    int totalOrderCost = 0;
+    int rowsInOrderList = 0;
+
+    while(customerOrders[lastRecordRow].orderId != 0) {
+        lastRecordRow++;
+    }
+    while (orderList[rowsInOrderList].productID != 0) {
+        rowsInOrderList++;
+    }
+    for(int i = 0; i < rowsInOrderList; i++) {
+        customerOrders[lastRecordRow].orderId = orderID;
+        customerOrders[lastRecordRow].productId = orderList[i].productID;
+        customerOrders[lastRecordRow].quantityPurchased = orderList[i].quantity;
+        strcpy(customerOrders[lastRecordRow].firstName, buyerData.firstName);
+        strcpy(customerOrders[lastRecordRow].lastName, buyerData.lastName);
+        strcpy(customerOrders[lastRecordRow].streetAddress, buyerData.streetAddress);
+        strcpy(customerOrders[lastRecordRow].city, buyerData.city);
+        strcpy(customerOrders[lastRecordRow].state, buyerData.state);
+        strcpy(customerOrders[lastRecordRow].zipCode, buyerData.zipCode);
+        customerOrders[lastRecordRow].totalPrice = orderList[i].quantity * orderList[i].itemCostPerUnit;
+        lastRecordRow++;
+    }
+
+    //TODO: write customerOrders to text file
+
+}
+
+int findBuyerInClientInfo(int buyerID, struct csvClientInfo buyerList[] ) {
+    int rowCount = 0;
+    while(buyerID != buyerList[rowCount].uuid) {
+        rowCount++;
+    }
+
+    return rowCount;
+}
+
+void completeAnOrder(char *buffer, int* clientSock) {
+    //Required Buffer String: "[COMPLETE_ORDER],int buyerID,int productID,int quantityOrdered,int pricePerUnit, int buyerID,int productID,int quantityOrdered,int pricePerUnit, ...,"
     int buyerID;
     struct itemOrder orderList[100];
     char* ptr;
-    struct csvClientInfo clientDB[maxRowsInDB];
+    struct csvProductInfo productList[maxRowsInDB];
 
     buyerID = atoi(strtok(buffer,","));
 
@@ -778,19 +853,27 @@ void completeAnOrder(char *buffer, int* clientSock) {
     sprintf(buffer, "%s\n", ptr);
 
     extractBuyerOrder(buffer, orderList);
+    loadProductInfo(productList);
 
-    if(validateBuyerOrder(orderList)) {
-        //TODO write orderList to CustomerOrder.txt and BillingInfo.txt
+    if(validateBuyerOrder(orderList, productList)) {
+        int buyerRecordRow = 0;
+        int orderID;
+        struct csvClientInfo buyerList[maxRowsInDB];
+        struct csvBillingInfo billingInfo[maxRowsInDB];
+        struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+
+
+        loadClientInfo("CustomerInfo.txt", buyerList);
+        loadBillingInfo(billingInfo);
+        loadCustomerOrderInfo(customerOrderInfo);
+
+        buyerRecordRow = findBuyerInClientInfo(buyerID, buyerList);
+
+        writeNewProductQuantityFromOrder(orderList, productList);
+        orderID = writeOrderToBillingInfo(buyerList[buyerRecordRow], orderList, billingInfo);
+        writeOrderToCustomerOrder(orderID, buyerList[buyerRecordRow], orderList,customerOrderInfo);
+
         writeSocket(clientSock, "[CONFIRMATION]");
     } else writeSocket(clientSock, "[INVALID]");
-
-    /*READ ProductInfo.txt validate given ProductID's AND Quantities
-    //validateID productID, "ProductInfo.txt")
-    //validateQuantity(int ProductID, int quantity)
-
-    IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt
-        SEND Order Conformation
-    ELSE Invalid
-        SEND Order Invalid*/
 }
 

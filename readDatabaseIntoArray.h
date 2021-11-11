@@ -59,19 +59,20 @@ struct csvCustomerOrderInfo {
 struct itemOrder {
     int productID;
     int quantity;
+    int itemCostPerUnit;
 };
 
 /*--loads buyer or seller data into a table, keys off of dbFile name to determine which --*/
 bool loadClientInfo(char* dbFile, struct csvClientInfo table[]);
 
 /*--loads ProductInfo data into a table --*/
-bool loadProductInfo(char* dbFile, struct csvProductInfo table[]);
+bool loadProductInfo(struct csvProductInfo table[]);
 
 /*--loads Customer Order data into a table --*/
-bool loadCustomerOrderInfo(char* dbFile, struct csvCustomerOrderInfo table[]);
+bool loadCustomerOrderInfo(struct csvCustomerOrderInfo table[]);
 
 /*--loads Billing Info data into a table --*/
-bool loadBillingInfo(char* dbFile, struct csvBillingInfo table[]);
+bool loadBillingInfo(struct csvBillingInfo table[]);
 
 
 #endif //GROUP_A_CS4323_READDATABASEINTOARRAY_H
