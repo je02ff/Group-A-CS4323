@@ -99,6 +99,10 @@ bool loadClientInfo(char* dbFile, struct csvClientInfo table[]) {
             table[rowCount].uuid = atoi(record);
             strcpy(table[rowCount].firstName, strtok(NULL,","));
             strcpy(table[rowCount].lastName, strtok(NULL,","));
+            strcpy(table[rowCount].phoneNumber
+
+
+                   , strtok(NULL,","));
             strcpy(table[rowCount].streetAddress, strtok(NULL,","));
             strcpy(table[rowCount].city, strtok(NULL,","));
             strcpy(table[rowCount].state, strtok(NULL,","));
@@ -639,6 +643,51 @@ void buyerViewsOrder(char *buffer, int* clientSock) {
 
             sprintf(numsToString,"%d", billingInfo[rowCount].totalOrderCost);
             strcat(dataToSendClient, numsToString);
+            strcat(dataToSendClient, ",\n");
+            bzero(numsToString, 20);
+        }
+        rowCount++;
+    }
+    writeSocket(clientSock,dataToSendClient);
+}
+
+void buyerViewsInfo(char *buffer, int* clientSock) {
+    //Required Buffer String: "[VIEW_BILLING],int buyerID,"
+    struct csvClientInfo clientInfo[maxRowsInDB];
+    char dataToSendClient[MSG_BUFFER_SIZE] = {0};
+    int rowCount = 0;
+    int userID;
+    char numsToString[20] = {0};
+
+    userID = atoi(strtok(buffer, ","));
+    loadClientInfo("CustomerInfo.txt", clientInfo);
+
+    while(clientInfo[rowCount].uuid != 0) {
+        if(clientInfo[rowCount].uuid == userID) {
+            sprintf(numsToString,"%d", clientInfo[rowCount].uuid);
+            strcat(dataToSendClient, numsToString);
+            strcat(dataToSendClient, ",");
+            bzero(numsToString, 20);
+
+            strcat(dataToSendClient, clientInfo[rowCount].firstName);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].lastName);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].phoneNumber);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].streetAddress);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].city);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].state);
+            strcat(dataToSendClient, ",");
+
+            strcat(dataToSendClient, clientInfo[rowCount].zipCode);
             strcat(dataToSendClient, ",\n");
             bzero(numsToString, 20);
         }

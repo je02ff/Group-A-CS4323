@@ -21,6 +21,7 @@ struct csvClientInfo {
     char city[20];
     char state[20];
     char zipCode[20];
+    char phoneNumber[20];
 };
 
 struct csvProductInfo {

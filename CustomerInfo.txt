@@ -1,4 +1,4 @@
-1000,Jeff,Roden,1234 Street st.,Edmond,OK,73034,
-1001,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033,
-1002,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,
-1003,Bruce,Wayne,1 Cave way,Gotham City,NY, 9095,
+1000,Jeff,Roden,(405)929-0001,1234 Street st.,Edmond,OK,73034,
+1001,Dick,Dickerson,(512)456-0001,3001 Dickle Dr.,Boulder,CO,87033,
+1002,Peter,Parker,(615)205-0002,3243 Spadermen Lane,NYC,New York,9092,
+1003,Bruce,Wayne,(569)653-0303,1 Cave way,Gotham City,NY, 9095,

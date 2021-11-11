@@ -66,6 +66,8 @@ int main() {
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
 
                         validateID(buffer);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                         /*
 
@@ -121,22 +123,29 @@ int main() {
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
 
                         viewProducts(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     /*4. BuyerOPTION 1-3 Complete Order TCP COMMAND: [COMPLETE_ORDER]*/
                     //Required Buffer String: "[COMPLETE_ORDER],int buyerID,int productID,int quantityOrdered,int pricePerUnit,int productID,int quantityOrdered,int pricePerUnit, ...,"
                     } else if(strstr(command, "[COMPLETE_ORDER]") != NULL) {
 
                         completeAnOrder(buffer,&clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     /*5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]*/
                     //Required Buffer String: "[VIEW_BUYER_ORDERS],int buyerID,"
                     } else if(strstr(command, "[VIEW_BUYER_ORDERS]") != NULL) {
 
                         buyerViewsOrder(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
                     } else if(strstr(command, "[MOD_ORDER]") != NULL) {
 
+                        //TODO
 
                         /*OrderID -- present in READ BillingInfo.txt //validateID(OrderID, "BillingInfo.txt")
                         IF OK --> READ CustomerOrder.txt AND READ BillingInfo.txt
@@ -154,15 +163,16 @@ int main() {
 
                     /*7. BuyerOPTION 4 View Billing Info TCP COMMAND: [VIEW_BILLING]*/
                     } else if(strstr(command, "[VIEW_BILLING]") != NULL) {
+                        //Required Buffer String: "[VIEW_BILLING],int buyerID,"
 
-
-                       /* READ CustomerInfo.txt
-                        SEND Name, Number, Address*/
-
+                        buyerViewsInfo(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     /*8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]*/
                     } else if(strstr(command, "[EDIT_INFO]") != NULL) {
 
+                        //TODO
 
                         /* READ CustomerInfo.txt
                          IF Buyer
@@ -191,6 +201,7 @@ int main() {
 
                     /*9. SellerOPTION 2 Add New Product TCP COMMAND: [NEW_PRODUCT]*/
                     } else if(strstr(command, "[NEW_PRODUCT]") != NULL) {
+                        //TODO
 
                        /* WRITE ProductInfo.txt
                         new ProductID, productName, SellerID, Quantity, Price/Unit
@@ -199,6 +210,7 @@ int main() {
 
                     /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
                     } else if(strstr(command, "[DELETE_PROD]") != NULL) {
+                        //TODO
 
                         /* READ ProductInfo.txt
                         validate ProductID //validateID(productID, ProductInfo.txt) TCP COMMAND:
@@ -215,7 +227,8 @@ int main() {
 
                     /*11. SellerOption 4 Modify Product Quantity TCP COMMAND: [MOD_QUANT]*/
                     } else if(strstr(command, "[MOD_QUANT]") != NULL) {
-                        printf("Seller modifying product quantity!\n"); //for testing
+                        //TODO
+
                         /* READ ProductInfo.txt
                         validate ProductID //validateID(productID, "ProductInfo.txt")
 
@@ -227,7 +240,8 @@ int main() {
 
                     /*12. SellerOption 5 Modify Product Price TCP COMMAND: [MOD_PRICE]*/
                     } else if(strstr(command, "[MOD_PRICE]") != NULL) {
-                        printf("Seller modifying product price!\n"); //for testing
+                        //TODO
+
                         /* READ ProductInfo.txt
                         validate ProductID //validateID(productID, ProductInfo.txt)
 
@@ -240,7 +254,8 @@ int main() {
 
                     /*13. SellerOption 6 View Product Orders TCP COMMAND: [SELLER_ORDERS]*/
                     } else if(strstr(command, "[SELLER_ORDERS]") != NULL) {
-                        printf("Seller looking at their product orders!\n"); //for testing
+                        //TODO
+
                         /*  READ ProductInfo.txt
                         get ProductIDList for seller's ID
 
