@@ -3,3 +3,5 @@
 3001,2004,10,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,30,
 3001,2001,2,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,20000,
 3002,2006,1,Dick,Dickerson,3001 Dickle Dr.,Boulder,CO,87033,10,
+3003,2006,4,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,40,
+3003,2007,5,Peter,Parker,3243 Spadermen Lane,NYC,New York,9092,60,

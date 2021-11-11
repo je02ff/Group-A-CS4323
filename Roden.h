@@ -2,9 +2,12 @@
 // Created by jeff on 11/11/21.
 //
 
-#ifndef GROUP_A_CS4323_DATASERVER_H
-#define GROUP_A_CS4323_DATASERVER_H
+#ifndef GROUP_A_CS4323_RODEN_H
+#define GROUP_A_CS4323_RODEN_H
 
+#include <stdbool.h>
+#include "readDatabaseIntoArray.h"
+#include "tcpStuff.h"
 
 
 bool validateID(char* buffer);
@@ -31,4 +34,6 @@ int findBuyerInClientInfo(int buyerID, struct csvClientInfo buyerList[] );
 
 void completeAnOrder(char *buffer, int* clientSock);
 
-#endif //GROUP_A_CS4323_DATASERVER_H
+void buyerViewsOrder();
+
+#endif //GROUP_A_CS4323_RODEN_H
