@@ -48,4 +48,18 @@ void modifyPrice(char *buffer, int* clientSock);
 
 void sellerViewsOrders(char *buffer, int* clientSock);
 
+void clientEditsInfo(char *buffer, int* clientSock);
+
+void sellerEditsName(char* buffer, int id);
+
+void sellerEditsNumber(char* buffer, int id);
+
+void sellerEditsAddress(char* buffer, int id);
+
+void buyerEditsNumber(char* buffer, int id);
+
+void buyerEditsName(char* buffer, int id);
+
+void buyerEditsAddress(char* buffer, int id);
+
 #endif //GROUP_A_CS4323_RODEN_H

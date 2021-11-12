@@ -70,13 +70,7 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
-                        /*
-                        *** BUYER MODIFYING AN ORDER ***
-                            validateID(OrderID, "BillingInfo.txt")
-                            validateID(OrderID, ProductID, "CustomerOrder.txt")
-                            NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
 
-                         */
 
 
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
@@ -109,6 +103,14 @@ int main() {
                         /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
                         //TODO
 
+                        /*
+                     *** BUYER MODIFYING AN ORDER ***
+                         validateID(OrderID, "BillingInfo.txt")
+                         validateID(OrderID, ProductID, "CustomerOrder.txt")
+                         NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
+
+                      */
+
                         /*OrderID -- present in READ BillingInfo.txt //validateID(OrderID, "BillingInfo.txt")
                         IF OK --> READ CustomerOrder.txt AND READ BillingInfo.txt
                             SEND ProductID, Product Name, quantity, Total Price
@@ -135,7 +137,17 @@ int main() {
 
                     } else if(strstr(command, "[EDIT_INFO]") != NULL) {
                         /*8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]*/
-                        //TODO
+                        /*REQ Buffer Strings:
+                         "[EDIT_INFO],[BUYER],clientID#,[NAME],firstName,lastName,"
+                         "[EDIT_INFO],[BUYER],clientID#,[NUMBER],phoneNum,"
+                         "[EDIT_INFO],[BUYER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
+                         "[EDIT_INFO],[SELLER],clientID#,[NAME],firstName,lastName,"
+                         "[EDIT_INFO],[SELLER],clientID#,[NUMBER],phoneNum,"
+                         "[EDIT_INFO],[SELLER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
+                         */
+                        clientEditsInfo(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                         /* READ CustomerInfo.txt
                          IF Buyer
@@ -150,18 +162,7 @@ int main() {
                                 WRITE BillingInfo.txt
                                 WRITE CustomerOrder.txt
                                 SEND Confirmation
-                        ELSE IF Seller
-                        IF EditName TCP COMMAND: [NAME]
-                            WRITE SellerInfo.txt
-                            SEND Confirmation
-                        ELSE Number TCP COMMAND: [NUMBER]
-                            WRITE SellerInfo.txt
-                            SEND Confirmation
-                        ELSE Address TCP COMMAND: [ADDRESS]
-                            WRITE SellerInfo.txt
-                            SEND Confirmation*/
-
-
+                            */
 
                     } else if(strstr(command, "[NEW_PRODUCT]") != NULL) {
                         /*9. SellerOPTION 2 Add New Product TCP COMMAND: [NEW_PRODUCT]*/

@@ -1,3 +1,7 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-msc50-cpp"
+#pragma ide diagnostic ignored "cert-msc51-cpp"
+#pragma ide diagnostic ignored "cert-err34-c"
 #include <stdio.h>
 #include <strings.h>
 #include <string.h>
@@ -205,7 +209,7 @@ bool loadBillingInfo(struct csvBillingInfo table[]) {
 int generateUID() {
 
     srand(time(NULL));
-    int idNum = (rand() % 9000) + 1000;
+    int idNum = rand() % 9000 + 1000;
 
     return idNum;
 }
@@ -242,7 +246,7 @@ bool validateID(char* buffer) {
         struct csvClientInfo buyerList[maxRowsInDB];
         if (loadClientInfo("CustomerInfo.txt", buyerList)) {
             while (buyerList[rowCount].uuid != 0) {
-                if (buyerList[rowCount].uuid == idToValidate) {return true; };
+                if (buyerList[rowCount].uuid == idToValidate) {return true; }
                 rowCount++;
             }
         }
@@ -252,7 +256,7 @@ bool validateID(char* buffer) {
         struct csvClientInfo sellerList[maxRowsInDB];
         if (loadClientInfo("CustomerInfo.txt", sellerList)) {
             while (sellerList[rowCount].uuid != 0) {
-                if (sellerList[rowCount].uuid == idToValidate) { return true; };
+                if (sellerList[rowCount].uuid == idToValidate) { return true; }
                 rowCount++;
             }
         }
@@ -262,7 +266,7 @@ bool validateID(char* buffer) {
         struct csvProductInfo productList[maxRowsInDB];
         if (loadProductInfo(productList)) {
             while (productList[rowCount].productId != 0) {
-                if (productList[rowCount].productId == idToValidate) { return true; };
+                if (productList[rowCount].productId == idToValidate) { return true; }
                 rowCount++;
             }
         }
@@ -272,19 +276,13 @@ bool validateID(char* buffer) {
         struct csvBillingInfo billingList[maxRowsInDB];
         if (loadBillingInfo(billingList)) {
             while (billingList[rowCount].orderId != 0) {
-                if (billingList[rowCount].orderId == idToValidate) { return true; };
+                if (billingList[rowCount].orderId == idToValidate) { return true; }
                 rowCount++;
             }
         }
         return false;
 
     } else return false;
-    // returns false if a problem or if ID is not present
-    /*2. bool validateID(int ID, string DatabaseName) TCP COMMAND: [VALIDATE_ID]
-    if ID in DatabaseName
-    return true
-    else
-    return false*/
 }
 
 void writeNewClientData(char *buffer) {
@@ -554,7 +552,6 @@ int writeOrderToBillingInfo(struct csvClientInfo buyerData, struct itemOrder *or
 
 void writeOrderToCustomerOrder(int orderID, struct csvClientInfo buyerData, struct itemOrder orderList[], struct csvCustomerOrderInfo customerOrders[]) {
     int lastRecordRow = 0;
-    int totalOrderCost = 0;
     int rowsInOrderList = 0;
 
     while(customerOrders[lastRecordRow].orderId != 0) {
@@ -606,7 +603,7 @@ void completeAnOrder(char *buffer, int* clientSock) {
     loadProductInfo(productList);
 
     if(validateBuyerOrder(orderList, productList)) {
-        int buyerRecordRow = 0;
+        int buyerRecordRow;
         int orderID;
         struct csvClientInfo buyerList[maxRowsInDB];
         struct csvBillingInfo billingInfo[maxRowsInDB];
@@ -797,7 +794,6 @@ void modifyQuantity(char *buffer, int* clientSock) {
     //REQ Buffer string: "sellerID,productID,quantityToSet"
 
     struct csvProductInfo pList[maxRowsInDB];
-    int rowCount = 0;
     char *ptr;
     int sellerID, productID, quantity;
     char productIdToValidate[20] = {0};
@@ -845,7 +841,6 @@ void modifyPrice(char *buffer, int* clientSock) {
     //REQ Buffer string: "sellerID,productID,quantityToSet"
 
     struct csvProductInfo pList[maxRowsInDB];
-    int rowCount = 0;
     char *ptr;
     int sellerID, productID, priceToSet;
     char productIdToValidate[20] = {0};
@@ -959,3 +954,291 @@ void sellerViewsOrders(char *buffer, int* clientSock) {
     }
     writeSocket(clientSock, dataToSendClient);
 }
+
+void clientEditsInfo(char *buffer, int* clientSock) {
+    /*REQ Buffer Strings:
+    "[BUYER],clientID#,[NAME],firstName,lastName,"
+    "[BUYER],clientID#,[NUMBER],phoneNum,"
+    "[BUYER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
+    "[SELLER],clientID#,[NAME],firstName,lastName,"
+    "[SELLER],clientID#,[NUMBER],phoneNum,"
+    "[SELLER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
+    */
+
+    char* ptr;
+    char clientType[20] = {0};
+    int clientID;
+    char subCommand[20] = {0};
+
+    ptr = strtok(buffer, ",");
+    strcpy(clientType, ptr);
+
+    ptr = strtok(NULL, ",");
+    clientID = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    strcpy(subCommand, ptr);
+
+    ptr = strtok(NULL, "");
+
+    if(strstr(clientType, "[BUYER]") != NULL) {
+        if(strstr(subCommand, "[NAME]") != NULL) {
+            buyerEditsName(ptr, clientID);
+        } else if(strstr(subCommand, "[NUMBER]") != NULL) {
+            buyerEditsNumber(ptr, clientID);
+        } else if(strstr(subCommand, "[ADDRESS]") != NULL) {
+            buyerEditsAddress(ptr, clientID);
+        }
+    } else {
+        if(strstr(subCommand, "[NAME]") != NULL) {
+            sellerEditsName(ptr, clientID);
+        } else if(strstr(subCommand, "[NUMBER]") != NULL) {
+            sellerEditsNumber(ptr, clientID);
+        } else if(strstr(subCommand, "[ADDRESS]") != NULL) {
+            sellerEditsAddress(ptr, clientID);
+        }
+    }
+    writeSocket(clientSock, "[CONFIRMATION]");
+}
+
+void sellerEditsName(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo sellerList[maxRowsInDB];
+    int sellerRowInDB = 0;
+
+    loadClientInfo("SellerInfo.txt", sellerList);
+    while(sellerList[sellerRowInDB].uuid != id) {
+        sellerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    bzero(sellerList[sellerRowInDB].firstName, 20);
+    strcpy(sellerList[sellerRowInDB].firstName, ptr);
+
+    ptr = strtok(NULL, ",");
+    bzero(sellerList[sellerRowInDB].lastName, 20);
+    strcpy(sellerList[sellerRowInDB].lastName, ptr);
+
+    //TODO writeback sellerList to SellerInfo.txt
+}
+
+void sellerEditsNumber(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo sellerList[maxRowsInDB];
+    int sellerRowInDB = 0;
+
+    loadClientInfo("SellerInfo.txt", sellerList);
+    while(sellerList[sellerRowInDB].uuid != id) {
+        sellerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    bzero(sellerList[sellerRowInDB].phoneNumber,20);
+    strcpy(sellerList[sellerRowInDB].phoneNumber, ptr);
+
+    //TODO writeback sellerList to SellerInfo.txt
+}
+
+void sellerEditsAddress(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo sellerList[maxRowsInDB];
+    int sellerRowInDB = 0;
+
+    loadClientInfo("SellerInfo.txt", sellerList);
+    while(sellerList[sellerRowInDB].uuid != id) {
+        sellerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    bzero(sellerList[sellerRowInDB].streetAddress,20);
+    strcpy(sellerList[sellerRowInDB].streetAddress, ptr);
+
+    ptr = strtok(NULL, ",");
+    bzero(sellerList[sellerRowInDB].city,20);
+    strcpy(sellerList[sellerRowInDB].city, ptr);
+
+    ptr = strtok(NULL, ",");
+    bzero(sellerList[sellerRowInDB].state,20);
+    strcpy(sellerList[sellerRowInDB].state, ptr);
+
+    ptr = strtok(NULL, ",");
+    bzero(sellerList[sellerRowInDB].zipCode,20);
+    strcpy(sellerList[sellerRowInDB].zipCode, ptr);
+
+    //TODO writeback sellerList to SellerInfo.txt
+}
+
+void buyerEditsNumber(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo buyerList[maxRowsInDB];
+    int buyerRowInDB = 0;
+
+    loadClientInfo("CustomerInfo.txt", buyerList);
+    while(buyerList[buyerRowInDB].uuid != id) {
+        buyerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    bzero(buyerList[buyerRowInDB].phoneNumber,20);
+    strcpy(buyerList[buyerRowInDB].phoneNumber, ptr);
+
+    //TODO writeback buyerList to CustomerInfo.txt
+}
+
+void buyerEditsName(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo buyerList[maxRowsInDB];
+    struct csvBillingInfo billingInfo[maxRowsInDB];
+    struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+    int buyerRowInDB = 0;
+    int buyerOrderNums[maxRowsInDB];
+    int orderCount = 0;
+    int rowCount = 0;
+    char firstName[20] = {0};
+    char lastName[20] = {0};
+
+    //edit name in CustomerInfo
+    loadClientInfo("CustomerInfo.txt", buyerList);
+    while(buyerList[buyerRowInDB].uuid != id) {
+        buyerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    strcpy(firstName, ptr);
+    bzero(buyerList[buyerRowInDB].firstName, 20);
+    strcpy(buyerList[buyerRowInDB].firstName, firstName);
+
+    ptr = strtok(NULL, ",");
+    strcpy(lastName, ptr);
+    bzero(buyerList[buyerRowInDB].lastName, 20);
+    strcpy(buyerList[buyerRowInDB].lastName, lastName);
+
+    //TODO write back sellerList to SellerInfo.txt
+
+    //edit name in BillingInfo.txt
+    loadBillingInfo(billingInfo);
+    while(billingInfo[rowCount].orderId != 0) {
+        if(billingInfo[rowCount].customerId == id) {
+
+            buyerOrderNums[orderCount] = billingInfo[rowCount].orderId;
+            orderCount++;
+
+            bzero(billingInfo[rowCount].firstName, 20);
+            strcpy(billingInfo[rowCount].firstName, firstName);
+
+            bzero(billingInfo[rowCount].lastName, 20);
+            strcpy(billingInfo[rowCount].lastName, lastName);
+        }
+        rowCount++;
+    }
+    //TODO write back billingInfo to BillingInfo.txt
+
+    //edit name in CustomerOrder.txt
+    loadCustomerOrderInfo(customerOrderInfo);
+    for(int i = 0; i < orderCount; i++) {
+        rowCount = 0;
+        while(customerOrderInfo[rowCount].orderId != 0) {
+            if(customerOrderInfo[rowCount].orderId == buyerOrderNums[i]) {
+                bzero(customerOrderInfo[rowCount].firstName, 20);
+                strcpy(customerOrderInfo[rowCount].firstName, firstName);
+
+                bzero(customerOrderInfo[rowCount].lastName, 20);
+                strcpy(customerOrderInfo[rowCount].lastName, lastName);
+            }
+            rowCount++;
+        }
+    }
+    //TODO write back customerOrderInfo to CustomerOrderInfo.txt
+}
+
+void buyerEditsAddress(char* buffer, int id) {
+    char* ptr;
+    struct csvClientInfo buyerList[maxRowsInDB];
+    struct csvBillingInfo billingInfo[maxRowsInDB];
+    struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+    int buyerRowInDB = 0;
+    int buyerOrderNums[maxRowsInDB];
+    int orderCount = 0;
+    int rowCount = 0;
+    char streetNum[20] = {0};
+    char city[20] = {0};
+    char state[20] = {0};
+    char zipCode[20] = {0};
+
+    //edit name in CustomerInfo
+    loadClientInfo("CustomerInfo.txt", buyerList);
+    while(buyerList[buyerRowInDB].uuid != id) {
+        buyerRowInDB++;
+    }
+
+    ptr = strtok(buffer, ",");
+    strcpy(streetNum, ptr);
+    bzero(buyerList[buyerRowInDB].streetAddress, 20);
+    strcpy(buyerList[buyerRowInDB].streetAddress, streetNum);
+
+    ptr = strtok(NULL, ",");
+    strcpy(city, ptr);
+    bzero(buyerList[buyerRowInDB].city, 20);
+    strcpy(buyerList[buyerRowInDB].city, city);
+
+    ptr = strtok(NULL, ",");
+    strcpy(state, ptr);
+    bzero(buyerList[buyerRowInDB].state, 20);
+    strcpy(buyerList[buyerRowInDB].state, state);
+
+    ptr = strtok(NULL, ",");
+    strcpy(zipCode, ptr);
+    bzero(buyerList[buyerRowInDB].zipCode, 20);
+    strcpy(buyerList[buyerRowInDB].zipCode, zipCode);
+
+    //TODO write back sellerList to SellerInfo.txt
+
+    //edit name in BillingInfo.txt
+    loadBillingInfo(billingInfo);
+    while(billingInfo[rowCount].orderId != 0) {
+        if(billingInfo[rowCount].customerId == id) {
+
+            buyerOrderNums[orderCount] = billingInfo[rowCount].orderId;
+            orderCount++;
+
+            bzero(billingInfo[rowCount].streetAddress, 20);
+            strcpy(billingInfo[rowCount].streetAddress, streetNum);
+
+            bzero(billingInfo[rowCount].city, 20);
+            strcpy(billingInfo[rowCount].city, city);
+
+            bzero(billingInfo[rowCount].state, 20);
+            strcpy(billingInfo[rowCount].state, state);
+
+            bzero(billingInfo[rowCount].zipCode, 20);
+            strcpy(billingInfo[rowCount].zipCode, zipCode);
+        }
+        rowCount++;
+    }
+    //TODO write back billingInfo to BillingInfo.txt
+
+    //edit name in CustomerOrder.txt
+    loadCustomerOrderInfo(customerOrderInfo);
+    for(int i = 0; i < orderCount; i++) {
+        rowCount = 0;
+        while(customerOrderInfo[rowCount].orderId != 0) {
+            if(customerOrderInfo[rowCount].orderId == buyerOrderNums[i]) {
+                bzero(customerOrderInfo[rowCount].streetAddress, 20);
+                strcpy(customerOrderInfo[rowCount].streetAddress, streetNum);
+
+                bzero(customerOrderInfo[rowCount].city, 20);
+                strcpy(customerOrderInfo[rowCount].city, city);
+
+                bzero(customerOrderInfo[rowCount].state, 20);
+                strcpy(customerOrderInfo[rowCount].state, state);
+
+                bzero(customerOrderInfo[rowCount].zipCode, 20);
+                strcpy(customerOrderInfo[rowCount].zipCode, zipCode);
+            }
+            rowCount++;
+        }
+    }
+    //TODO write back customerOrderInfo to CustomerOrderInfo.txt
+}
+
+#pragma clang diagnostic pop
