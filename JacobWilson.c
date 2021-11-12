@@ -97,6 +97,7 @@ strcat(putBack, ",");
 intToCharArray(table[x].price,result);
 strcat(putBack, result);
 memset(result, 0, strlen(result));
+//this makes sure that the last char isnt a new line character
 if(x !=7){
 strcat(putBack, ",\n");
 }
