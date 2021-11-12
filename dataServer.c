@@ -61,9 +61,9 @@ int main() {
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
                         /*2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]*/
                         /*Required Buffer string: "[VALIDATE_ID],3432,[BUYER]"
-                        or "[VALIDATE_ID],3432,[SELLER]"
-                        or "[VALIDATE_ID],3432,[PRODUCT]"
-                        or "[VALIDATE_ID],3432,[BILLING]"          */
+                        or "[VALIDATE_ID],numberID,[SELLER]"
+                        or "[VALIDATE_ID],numberID,[PRODUCT]"
+                        or "[VALIDATE_ID],numberID,[BILLING]"          */
 
                         validateID(buffer);
                         bzero(buffer, MSG_BUFFER_SIZE);
@@ -212,18 +212,11 @@ int main() {
 
                     } else if(strstr(command, "[DELETE_PROD]") != NULL) {
                         /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
-                        //TODO
+                        //REQUIRED Buff string: "[DELETE_PROD],sellerID,productID,"
 
-                        /* READ ProductInfo.txt
-                        validate ProductID //validateID(productID, ProductInfo.txt) TCP COMMAND:
-
-                        IF OK --> WRITE ProductInfo.txt AND WRITE BillingInfo.txt AND WRITE CustomerOrder.txt
-                            delete from ProductInfo
-                            update CustomerOrder.txt and store total item price
-                            update BillingInfo.txt total Order Price
-                            SEND Confirmation
-                        ELSE
-                            SEND Invalid*/
+                        deleteProduct(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
 
 

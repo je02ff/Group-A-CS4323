@@ -224,6 +224,10 @@ void extractCommand(char *buffer, char *command) {
 }
 
 bool validateID(char* buffer) {
+    /*Required Buffer string: "idNumber,[BUYER]"
+                        or "idNumber,[SELLER]"
+                        or "idNumber,[PRODUCT]"
+                        or "idNumber,[BILLING]"          */
     int idToValidate;
     char dbName[20];
     char* point;
@@ -238,42 +242,42 @@ bool validateID(char* buffer) {
         struct csvClientInfo buyerList[maxRowsInDB];
         if (loadClientInfo("CustomerInfo.txt", buyerList)) {
             while (buyerList[rowCount].uuid != 0) {
-                if (buyerList[rowCount].uuid == idToValidate) {return false; };
+                if (buyerList[rowCount].uuid == idToValidate) {return true; };
                 rowCount++;
             }
-            return true;
         }
         return false; // returns false if a problem or if ID is not present
+
     } else if (strstr(dbName, "[SELLER]") != NULL) {
         struct csvClientInfo sellerList[maxRowsInDB];
         if (loadClientInfo("CustomerInfo.txt", sellerList)) {
             while (sellerList[rowCount].uuid != 0) {
-                if (sellerList[rowCount].uuid == idToValidate) { return false; };
+                if (sellerList[rowCount].uuid == idToValidate) { return true; };
                 rowCount++;
             }
-            return true;
         }
         return false;
+
     } else if (strstr(dbName, "[PRODUCT]") != NULL) {
         struct csvProductInfo productList[maxRowsInDB];
         if (loadProductInfo(productList)) {
             while (productList[rowCount].productId != 0) {
-                if (productList[rowCount].productId == idToValidate) { return false; };
+                if (productList[rowCount].productId == idToValidate) { return true; };
                 rowCount++;
             }
-            return true;
         }
         return false;
+
     } else if (strstr(dbName, "[BILLING]") != NULL) {
         struct csvBillingInfo billingList[maxRowsInDB];
         if (loadBillingInfo(billingList)) {
             while (billingList[rowCount].orderId != 0) {
-                if (billingList[rowCount].orderId == idToValidate) { return false; };
+                if (billingList[rowCount].orderId == idToValidate) { return true; };
                 rowCount++;
             }
-            return true;
         }
         return false;
+
     } else return false;
     // returns false if a problem or if ID is not present
     /*2. bool validateID(int ID, string DatabaseName) TCP COMMAND: [VALIDATE_ID]
@@ -725,3 +729,61 @@ void addNewProduct(char *buffer, int* clientSock) {
 
     writeSocket(clientSock, "[CONFIRMATION]");
 }
+
+void deleteProduct(char *buffer, int* clientSock) {
+    //REQUIRED Buff string: "sellerID,productID,"
+
+    struct csvProductInfo pList[maxRowsInDB];
+    int rowCount = 0;
+    int rowCountTrailing = 0;
+    char *ptr;
+    int sellerID, productID;
+    char productIdToValidate[20] = {0};
+    int productRowNum = 0;
+
+    ptr = strtok(buffer,",");
+    sellerID = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    strcpy(productIdToValidate, ptr);
+    strcat(productIdToValidate, ",[PRODUCT],");
+    productID = atoi(ptr);
+
+
+
+    if(validateID(productIdToValidate)) {
+        struct csvProductInfo modifiedProductList[maxRowsInDB];
+
+        loadProductInfo(pList);
+
+        //find row number of the product to delete
+        while (pList[productRowNum].productId != 0) {
+            if (pList[productRowNum].productId == productID) {
+                break;
+            }
+            productRowNum++;
+        }
+
+        //check to make sure seller is owner of the product to delete
+        if(pList[productRowNum].sellerId != sellerID) {
+            writeSocket(clientSock, "[INVALID]");
+        } else {
+            //load pList into a new table, but skip productRowNum
+            while(pList[rowCount].productId != 0) {
+                if(pList[rowCount].productId != productID){
+                    modifiedProductList[rowCountTrailing] = pList[rowCount];
+                } else {
+                    rowCountTrailing -= 1;
+                }
+                rowCount++;
+                rowCountTrailing++;
+            }
+        }
+        //TODO write modifiedProductList to ProductInfo.txt
+
+    } else {
+        writeSocket(clientSock, "[INVALID]");
+    }
+
+}
+
