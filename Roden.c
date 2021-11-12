@@ -119,7 +119,7 @@ bool loadProductInfo(struct csvProductInfo table[]) {
     char *record,*line;
     int rowCount = 0;
 
-    FILE *fstream = fopen("/ProductInfo.txt","r");
+    FILE *fstream = fopen("ProductInfo.txt","r");
 
     if(fstream == NULL) {
         return false;
@@ -694,4 +694,34 @@ void buyerViewsInfo(char *buffer, int* clientSock) {
         rowCount++;
     }
     writeSocket(clientSock,dataToSendClient);
+}
+
+void addNewProduct(char *buffer, int* clientSock) {
+    //REQ Buffer string: "[NEW_PRODUCT],sellerID,productName,quantityAvailable,pricePerUnit,"
+    struct csvProductInfo pList[maxRowsInDB];
+    int newRecordRow = 0;
+    char *ptr;
+    loadProductInfo(pList);
+
+    while( pList[newRecordRow].productId != 0){
+        newRecordRow++;
+    }
+
+    pList[newRecordRow].productId = generateUID();
+
+    ptr = strtok(buffer,",");
+    pList[newRecordRow].sellerId = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    strcpy(pList[newRecordRow].productName, ptr);
+
+    ptr = strtok(NULL, ",");
+    pList[newRecordRow].quantity = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    pList[newRecordRow].price = atoi(ptr);
+
+    //TODO write plist to text file
+
+    writeSocket(clientSock, "[CONFIRMATION]");
 }

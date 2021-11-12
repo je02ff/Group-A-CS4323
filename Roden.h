@@ -38,4 +38,6 @@ void buyerViewsOrder(char *buffer, int* clientSock);
 
 void buyerViewsInfo(char *buffer, int* clientSock);
 
+void addNewProduct(char *buffer, int* clientSock);
+
 #endif //GROUP_A_CS4323_RODEN_H
