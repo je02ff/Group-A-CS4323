@@ -40,7 +40,7 @@ void buyerViewsInfo(char *buffer, int* clientSock);
 
 void addNewProduct(char *buffer, int* clientSock);
 
-void deleteProduct(char *buffer, int* clientSock);
+void deleteProduct(char *buffer, int* clientSock, int *deletedProducts);
 
 void modifyQuantity(char *buffer, int* clientSock);
 

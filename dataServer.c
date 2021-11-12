@@ -27,6 +27,7 @@ int main() {
     struct sockaddr_in client = {0};
     char buffer[MSG_BUFFER_SIZE];
     char command[25];
+    int deletedProducts[maxRowsInDB] = {0};
     pid_t pid;
 
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
@@ -174,7 +175,7 @@ int main() {
                         /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
                         //REQUIRED Buff string: "[DELETE_PROD],sellerID,productID,"
 
-                        deleteProduct(buffer, &clientSock);
+                        deleteProduct(buffer, &clientSock, deletedProducts);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 

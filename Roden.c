@@ -730,7 +730,7 @@ void addNewProduct(char *buffer, int* clientSock) {
     writeSocket(clientSock, "[CONFIRMATION]");
 }
 
-void deleteProduct(char *buffer, int* clientSock) {
+void deleteProduct(char *buffer, int* clientSock, int *deletedProducts) {
     //REQUIRED Buff string: "sellerID,productID,"
 
     struct csvProductInfo pList[maxRowsInDB];
@@ -740,6 +740,7 @@ void deleteProduct(char *buffer, int* clientSock) {
     int sellerID, productID;
     char productIdToValidate[20] = {0};
     int productRowNum = 0;
+    int delProductIndex = 0;
 
     ptr = strtok(buffer,",");
     sellerID = atoi(ptr);
@@ -768,6 +769,11 @@ void deleteProduct(char *buffer, int* clientSock) {
         if(pList[productRowNum].sellerId != sellerID) {
             writeSocket(clientSock, "[INVALID]");
         } else {
+            //add to deleted product list
+            while(deletedProducts[delProductIndex] != 0){
+                delProductIndex++;
+            }
+            deletedProducts[delProductIndex] = productID;
             //load pList into a new table, but skip productRowNum
             while(pList[rowCount].productId != 0) {
                 if(pList[rowCount].productId != productID){
