@@ -784,6 +784,52 @@ void deleteProduct(char *buffer, int* clientSock) {
     } else {
         writeSocket(clientSock, "[INVALID]");
     }
+}
 
+void modifyQuantity(char *buffer, int* clientSock) {
+    //REQ Buffer string: "sellerID,productID,quantityToSet"
+
+    struct csvProductInfo pList[maxRowsInDB];
+    int rowCount = 0;
+    char *ptr;
+    int sellerID, productID, quantity;
+    char productIdToValidate[20] = {0};
+    int productRowNum = 0;
+
+    ptr = strtok(buffer,",");
+    sellerID = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    strcpy(productIdToValidate, ptr);
+    strcat(productIdToValidate, ",[PRODUCT],");
+    productID = atoi(ptr);
+    ptr = strtok(NULL, ",");
+    quantity = atoi(ptr);
+
+
+    if(validateID(productIdToValidate)) {
+
+        loadProductInfo(pList);
+
+        //find row number of the product to modify
+        while (pList[productRowNum].productId != 0) {
+            if (pList[productRowNum].productId == productID) {
+                break;
+            }
+            productRowNum++;
+        }
+
+        //check to make sure seller is owner of the product to delete
+        if(pList[productRowNum].sellerId != sellerID) {
+            writeSocket(clientSock, "[INVALID]");
+        } else {
+            //modify the quantity
+            pList[productRowNum].quantity = quantity;
+        }
+        //TODO write plist to ProductInfo.txt
+
+    } else {
+        writeSocket(clientSock, "[INVALID]");
+    }
 }
 

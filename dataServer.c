@@ -218,22 +218,13 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
-
-
-
                     } else if(strstr(command, "[MOD_QUANT]") != NULL) {
                         /*11. SellerOption 4 Modify Product Quantity TCP COMMAND: [MOD_QUANT]*/
-                        //TODO
+                        //REQ Buffer string: "[MOD_QUANT],sellerID,productID,quantityToSet"
 
-                        /* READ ProductInfo.txt
-                        validate ProductID //validateID(productID, "ProductInfo.txt")
-
-                        IF OK --> WRITE ProductInfo.txt
-                            SEND Confirmation
-                        ELSE
-                            SEND InvalidID*/
-
-
+                        modifyQuantity(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     } else if(strstr(command, "[MOD_PRICE]") != NULL) {
                         /*12. SellerOption 5 Modify Product Price TCP COMMAND: [MOD_PRICE]*/
