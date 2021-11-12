@@ -5,10 +5,13 @@
 #include "Roden.h"
 #include "readDatabaseIntoArray.h"
 
+//takes in the int to be changed and a pointer for a char array to place the charcters into 
 int intToCharArray(int change, char* result){
 int temp = change;
 int position = 0;
 while(temp != 0){
+	//switch that takes a single digit from the int and adds its complimentary char 
+	//into a result array starting from the one's digit and building up
    switch (temp%10){
       case 0:
          result[position] = '0';
@@ -54,9 +57,8 @@ while(temp != 0){
 	 break;
    }
    temp = temp/10;
-   //printf("RES IN FUNC: %s\n", result);
 }
-   //printf("SIZE IN FUNC: %ld\n", strlen(result));
+//the input with the method is backwards so this reverses the string to be in the proper order
    int pos = strlen(result)-1;
    char rev[strlen(result)];
    for(int x = 0; x < strlen(result); x++){
@@ -65,14 +67,15 @@ while(temp != 0){
    }
    strncpy(result,rev,strlen(result));
 }
-
+//takes in the product info struct and writes it back to the file ProductInfo.txt
 int writeBackProductStruct(struct csvProductInfo table[]){
-//FILE* fl1 = fopen("ProductInfo.txt","w+");
+
 char putBack[1000];
 char result[100];
+//goes through each row in the database currently set to 8 but can and will be changed when merge
 for(int x = 0; x < 8; x++){
 memset(result, 0, strlen(result));
-
+//have to call intToCharArray for strcat
 intToCharArray(table[x].productId,result);
 strcat(putBack, result);
 memset(result, 0, strlen(result));
@@ -98,9 +101,10 @@ if(x !=7){
 strcat(putBack, ",\n");
 }
 }
-//printf("%s",putBack);
+
 FILE* fl1 = fopen("ProductInfo.txt","w+");
 fprintf(fl1,"%s",putBack);
 fclose(fl1);
 return 0;
 }
+//TODO add the write backs for the other databases
