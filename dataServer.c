@@ -70,51 +70,11 @@ int main() {
                         bzero(command, 25);
 
                         /*
+                        *** BUYER MODIFYING AN ORDER ***
+                            validateID(OrderID, "BillingInfo.txt")
+                            validateID(OrderID, ProductID, "CustomerOrder.txt")
+                            NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
 
-
-                    3. bool validateQuantity(int productID, int orderAmount)<---always checks ProductInfo.txt
-                             if productID's quantity in ProductInfo.txt >= orderAmount
-                                return true
-                             else
-                                return false
-
-                    //Validation Scenarios:
-                   *** CLIENT LOGIN: ***
-                        IF Buyer -- data received from Client: CustomerID
-                            READ CustomerInformation.txt
-                            CustomerID -- present
-                            //validateID(CustomerID, "CustomerInformation.txt") TCP COMMAND: [VALIDATE_ID]
-                            SEND Confirmation
-                        ELSE
-                            SEND Invalid
-
-                        IF Seller  -- data received from Client: SellerID
-                             READ SellerInformation.txt
-                             SellerID -- present
-                             //validateID(SellerID, "SellerInformation.txt") TCP COMMAND: [VALIDATE_ID]
-                             SEND Confirmation
-                        ELSE
-                            SEND Invalid
-
-                    *** BUYER COMPLETING AN ORDER ***
-                        Buyer submits a list of product ID's with desired quantity of each productID
-
-                        for every Product ID
-                            validateID(ProductID, "ProductInfo.txt") AND validateQuantity(int ProductID, int quantity) == false
-                                return false
-
-                    *** BUYER MODIFYING AN ORDER ***
-                        validateID(OrderID, "BillingInfo.txt")
-                        validateID(OrderID, ProductID, "CustomerOrder.txt") NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
-
-                    *** Seller DELETES A PRODUCT ***
-                        validateID(productID, ProductInfo.txt)
-
-                    *** Seller MODIFIES A PRODUCT AMOUNT ***
-                        validateID(productID, ProductInfo.txt)
-
-                    *** Seller MODIFIES A PRODUCT PRICE ***
-                        validateID(productID, ProductInfo.txt)
                          */
 
 
@@ -236,13 +196,11 @@ int main() {
 
                     } else if(strstr(command, "[SELLER_ORDERS]") != NULL) {
                         /*13. SellerOption 6 View Product Orders TCP COMMAND: [SELLER_ORDERS]*/
-                        //TODO
+                        //REQ Buffer string: "[SELLER_ORDERS],sellerID,"
 
-                        /*  READ ProductInfo.txt
-                        get ProductIDList for seller's ID
-
-                        READ CustomerOrder.txt
-                        SEND Filtered to ProductIDList: OrderID,ProductID, Quantity, Total Price, Delivery Address*/
+                        sellerViewsOrders(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     }
                 }

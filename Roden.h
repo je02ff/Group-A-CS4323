@@ -46,4 +46,6 @@ void modifyQuantity(char *buffer, int* clientSock);
 
 void modifyPrice(char *buffer, int* clientSock);
 
+void sellerViewsOrders(char *buffer, int* clientSock);
+
 #endif //GROUP_A_CS4323_RODEN_H

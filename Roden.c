@@ -883,3 +883,73 @@ void modifyPrice(char *buffer, int* clientSock) {
     }
 }
 
+void sellerViewsOrders(char *buffer, int* clientSock) {
+    //REQ Buffer string: "[SELLER_ORDERS],sellerID,"
+
+    struct csvProductInfo pList[maxRowsInDB];
+    struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+    char *ptr;
+    int ownedProductIDs[maxRowsInDB] = {0};
+    int sellerID;
+    int rowCounter = 0;
+    int arrayCounter = 0;
+    char dataToSendClient[MSG_BUFFER_SIZE] = {0};
+    char numsToString[20];
+
+    ptr = strtok(buffer,",");
+    sellerID = atoi(ptr);
+
+    //load and extract all productIDs owned by the seller
+    loadProductInfo(pList);
+
+    while (pList[rowCounter].productId != 0) {
+        if (pList[rowCounter].sellerId == sellerID) {
+            ownedProductIDs[arrayCounter] = pList[rowCounter].productId;
+            arrayCounter++;
+        }
+        rowCounter++;
+    }
+    //scan CustomerOrder database and add orders owned by seller to dataToSend
+    loadCustomerOrderInfo(customerOrderInfo);
+    for(int i = 0; i < arrayCounter; i++) {
+        rowCounter = 0;
+        while(customerOrderInfo[rowCounter].orderId != 0) {
+            if (customerOrderInfo[rowCounter].productId == ownedProductIDs[i]) {
+                sprintf(numsToString,"%d", customerOrderInfo[rowCounter].orderId);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                sprintf(numsToString,"%d", customerOrderInfo[rowCounter].productId);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                sprintf(numsToString,"%d", customerOrderInfo[rowCounter].quantityPurchased);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                sprintf(numsToString,"%d", customerOrderInfo[rowCounter].totalPrice);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].firstName);
+                strcat(dataToSendClient, ",");
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].lastName);
+                strcat(dataToSendClient, ",");
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].streetAddress);
+                strcat(dataToSendClient, ",");
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].city);
+                strcat(dataToSendClient, ",");
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].state);
+                strcat(dataToSendClient, ",");
+                strcat(dataToSendClient, customerOrderInfo[rowCounter].zipCode);
+                strcat(dataToSendClient, ",");
+            }
+            rowCounter++;
+        }
+    }
+    writeSocket(clientSock, dataToSendClient);
+}
