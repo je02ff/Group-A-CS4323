@@ -228,18 +228,11 @@ int main() {
 
                     } else if(strstr(command, "[MOD_PRICE]") != NULL) {
                         /*12. SellerOption 5 Modify Product Price TCP COMMAND: [MOD_PRICE]*/
-                        //TODO
+                        //REQ Buffer string: "[MOD_PRICE],sellerID,productID,priceToSet"
 
-                        /* READ ProductInfo.txt
-                        validate ProductID //validateID(productID, ProductInfo.txt)
-
-                        IF OK --> WRITE ProductInfo.txt
-                            adjust Product Price
-                            SEND Confirmation
-                        ELSE
-                            SEND Invalid ID*/
-
-
+                        modifyPrice(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
                     } else if(strstr(command, "[SELLER_ORDERS]") != NULL) {
                         /*13. SellerOption 6 View Product Orders TCP COMMAND: [SELLER_ORDERS]*/
