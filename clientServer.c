@@ -12,6 +12,45 @@
 
 sem_t lock; // initialize lock for loading data properly
 
+/*  function to connect the client to the server
+    params: none
+    returns: int (the client value) */
+int clientConnect() {
+    int clientSocket;
+    char *message = "Connection successful"; // to send as message if connection is properly established 
+
+    struct sockaddr_in serverAdress;
+
+    clientSocket = socket(AF_INET, SOCK_STREAM, 0); // create socket
+
+    if (clientSocket < 0) {
+        printf("\nError creating socket\n");
+        return -1;
+    }
+
+    // set values for server struct
+    serverAdress.sin_family = AF_INET;
+    serverAdress.sin_port = htons(PORT); 
+    serverAdress.sin_addr.s_addr = INADDR_ANY;
+
+    // check if the address is valid or not
+    if (inet_pton(AF_INET, "127.0.0.1", &serverAdress.sin_addr) <= 0) {
+        printf("\nAddress invalid\n");
+        return -1;
+    }
+    // ensure the connection is valid
+    if (connect(clientSocket, (struct sockaddr *)&serverAdress, sizeof(serverAdress)) < 0) {
+        printf("\nBinding connection failed\n");
+        return -1;
+    }
+    
+    // if the connection is succesful, send data through socket
+    send(clientSocket, message, strlen(message), 0);
+    printf("\nSuccessfully connected to server!\n");
+
+    return 0;
+}
+
 /*  function to display and handle the initial menu of the program
     params: none 
     returns: void */
@@ -488,5 +527,6 @@ void modifyPrice() {
 
 // main function to test functions
 int main() {
+    clientConnect();
     initialMenu();
 }
