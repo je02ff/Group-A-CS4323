@@ -91,6 +91,8 @@
 	if (validate productID (READ ProductInfo.txt))
 		READ ProductInfo.txt
 		if (seller owns the product)
+		    READ deletedProduct global array var
+		    WRITE deletedProduct global array var
 			WRITE ProductInfo.txt
 	else
 		–
