@@ -1257,29 +1257,58 @@ void buyerEditsAddress(char* buffer, int id) {
     //TODO write back customerOrderInfo to CustomerOrderInfo.txt
 }
 
-void buyerModifiesOrder(char *buffer, int* clientSock) {
+void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TEST
+    //Buff String: "orderID,productIDToReturn,"
     struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
     struct csvBillingInfo billingInfo[maxRowsInDB];
     struct csvCustomerOrderInfo modifiedCustomerOrderInfo[maxRowsInDB];
-    struct csvBillingInfo modifiedBillingInfo[maxRowsInDB];
     char* ptr;
     int productIDtoReturn;
+    int orderID;
     int itemCost;
-    int rowCount;
+    int rowCount = 0;
+    int rowCountTrailing = 0;
     int productRowLoc = 0;
 
     ptr = strtok(buffer, ",");
+    orderID = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
     productIDtoReturn = atoi(ptr);
 
     loadCustomerOrderInfo(customerOrderInfo);
     loadBillingInfo(billingInfo);
 
     //find the product to remove in CustomerOrderInfo
-    while(customerOrderInfo[productRowLoc].productId != productIDtoReturn) {
+    while(customerOrderInfo[productRowLoc].orderId != orderID) {
         productRowLoc++;
     }
+    //get item cost to deduct from the BillingInfo DB
+    itemCost = customerOrderInfo[productRowLoc].totalPrice;
 
+    //modify customerOrderInfoDB
+    //load pList into a new table, but skip productRowNum
+    while(customerOrderInfo[rowCount].productId != 0) {
+        if(customerOrderInfo[rowCount].productId != productIDtoReturn){
+            modifiedCustomerOrderInfo[rowCountTrailing] = customerOrderInfo[rowCount];
+        } else {
+            rowCountTrailing -= 1;
+        }
+        rowCount++;
+        rowCountTrailing++;
+    }
+
+    //TODO write modifiedCustomerOrderInfo to CustomerOrderInfo.txt
+
+    //find the order in BillingInfo and deduct deleted product price from the total order price
+    rowCount = 0;
+    while(billingInfo[rowCount].orderId != orderID) {
+        rowCount++;
+    }
+    billingInfo[rowCount].totalOrderCost -= itemCost;
 }
+
+    //TODO write billingInfo to BillingInfo.txt
 
 void readOrderDetails(char *buffer, int* clientSock) {
     struct itemOrder itemsInOrder[200];
@@ -1338,5 +1367,30 @@ void readOrderDetails(char *buffer, int* clientSock) {
     writeSocket(clientSock, dataToSendClient);
 }
 
+bool validateOrderIsBuyers(char *buffer, int* clientSock) {  //TODO NEED TO TEST
+    //Buff String: buyerID,orderID,
+    int buyerID, orderID;
+    char* ptr;
+    struct csvBillingInfo billingInfo[maxRowsInDB];
+    int rowCounter = 0;
+
+    ptr = strtok(buffer, ",");
+    buyerID = atoi(ptr);
+
+    ptr = strtok(NULL, ",");
+    orderID = atoi(ptr);
+
+    loadBillingInfo(billingInfo);
+
+    while(billingInfo[rowCounter].orderId != 0) {
+        if(billingInfo[rowCounter].orderId == orderID) {
+            if(billingInfo[rowCounter].customerId == buyerID) {
+                return true;
+            } else
+                return false;
+        }
+    }
+    return false;
+}
 
 #pragma clang diagnostic pop

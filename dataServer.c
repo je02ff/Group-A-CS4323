@@ -110,9 +110,25 @@ int main() {
 
                         //SENDS BACK: orderID,TotalOrderCost,
 
-                    } else if(strstr(command, "[ORDER_DETAILS]") != NULL) {
+                    } else if(strstr(command, "[CHECK_BUYER]") != NULL) {
+                        /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
+                        //REQ Buffer String: [CHECK_BUYER],buyerID,orderID,
+
+                        bool result = validateOrderIsBuyers(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
+
+                        if(result)
+                            writeSocket(&clientSock, "[CONFIRMATION]");
+                        else
+                            writeSocket(&clientSock, "[INVALID]");
+
+                        //SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+
+                    }else if(strstr(command, "[ORDER_DETAILS]") != NULL) {
                         /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [ORDER_DETAILS]*/
-                        //!!clientServer calls validate first with "[VALIDATE_ID],numberID,[BILLING]"
+                        //!!clientServer calls [CHECK_BUYER] first!!"
                         //REQ Buffer String: "[ORDER_DETAILS],numberID,"
 
                         readOrderDetails(buffer, &clientSock);
@@ -123,37 +139,16 @@ int main() {
 
                     } else if(strstr(command, "[MOD_ORDER]") != NULL) {
                         /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
-                        //1.clientServer calls validateCorrectBuyer();
-                        //2.clientServer validates orderID "[VALIDATE_ID],orderID,[BILLING],"
-                        //3.clientServer views order details with "[ORDER_DETAILS],orderID,"
-                        //4.clientServer validates productID  "[VALIDATE_ID],productIDToReturn,[ORDER],"
-                        //5.clientServer calls "[MOD_ORDER],productIDToReturn,"
+                        //1.clientServer validates order belongs to buyer: [CHECK_BUYER],buyerID,orderID],
+                        //2.clientServer views order details: "[ORDER_DETAILS],orderID,"
+                        //3.clientServer validates productID:  "[VALIDATE_ID],productIDToReturn,[ORDER],"
+                        //4.lastly, clientServer calls "[MOD_ORDER],orderID,productIDToReturn"
 
                         buyerModifiesOrder(buffer, &clientSock);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
-                        /*
-                     *** BUYER MODIFYING AN ORDER ***
-                         validateID(OrderID, "BillingInfo.txt")
-                         validateID(OrderID, ProductID, "CustomerOrder.txt")
-                         NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
-
-                      */
-
-                        /*OrderID -- present in READ BillingInfo.txt //validateID(OrderID, "BillingInfo.txt")
-                        IF OK --> READ CustomerOrder.txt AND READ BillingInfo.txt
-                            SEND ProductID, Product Name, quantity, Total Price
-
-                        ClientOPTION 3-1 Return a product
-                        productID present in READ CustomerOrder.txt //validateID(OrderID, ProductID, "CustomerOrder.txt") NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK
-                        IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt AND WRITE ProductInfo.txt
-                            Send Order Modified
-                        ELSE
-                            SEND Invalid
-                        ELSE Invalid
-                            SEND Order Invalid*/
-
+                        //SENDS BACK: CONFIRMATION]
 
 
                     } else if(strstr(command, "[VIEW_BILLING]") != NULL) {
