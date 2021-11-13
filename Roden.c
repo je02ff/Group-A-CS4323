@@ -255,7 +255,7 @@ bool validateID(char* buffer) {
 
     } else if (strstr(dbName, "[SELLER]") != NULL) {
         struct csvClientInfo sellerList[maxRowsInDB];
-        if (loadClientInfo("CustomerInfo.txt", sellerList)) {
+        if (loadClientInfo("SellerInfo.txt", sellerList)) {
             while (sellerList[rowCount].uuid != 0) {
                 if (sellerList[rowCount].uuid == idToValidate) { return true; }
                 rowCount++;
@@ -1129,7 +1129,7 @@ void buyerEditsName(char* buffer, int id) {
     bzero(buyerList[buyerRowInDB].lastName, 20);
     strcpy(buyerList[buyerRowInDB].lastName, lastName);
 
-    //TODO write back sellerList to SellerInfo.txt
+    //TODO write back buyerList to CustomerInfo.txt
 
     //edit name in BillingInfo.txt
     loadBillingInfo(billingInfo);

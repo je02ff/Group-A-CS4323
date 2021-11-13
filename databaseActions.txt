@@ -1,0 +1,116 @@
+1.[NEW_CLIENT]
+	if buyer
+		READ CustomerInfo.txt
+		WRITE CustomerInfo.txt
+	else
+		READ SellerInfo.txt
+		WRITE SellerInfo.txt
+
+2.[VALIDATE_ID]
+	if buyer
+		READ CustomerInfo.txt
+	else if seller
+		READ SellerInfo.txt
+	else if product
+		READ ProductInfo.txt
+	else if billing
+		READ BillingInfo.txt
+	else if order
+		READ CustomerOrderInfo.txt
+
+4.[VIEW_PRODUCTS]
+	if buyer
+		READ ProductInfo.txt
+	else
+		READ ProductInfo.txt
+
+5.[COMPLETE_ORDER]
+	READ ProductInfo.txt
+	if validOrder
+		READ CustomerInfo.txt
+		READ BillingInfo.txt
+		READ CustomerOrderInfo.txt
+		WRITE ProductInfo.txt
+		WRITE BillingInfo.txt
+		WRITE CustomerOrderInfo.txt
+
+6.[VIEW_BUYER_ORDERS]
+	READ BillingInfo.txt
+
+7.[CHECK_BUYER]
+	READ BillingInfo.txt
+
+8.[ORDER_DETAILS]
+	READ CustomerOrderInfo.txt
+	READ ProductInfo.txt
+
+9.[MOD_ORDER]
+	READ CustomerOrderInfo.txt
+	READ BillingInfo.txt
+	WRITE CustomerOrderInfo.txt
+	WRITE BillingInfo.txt
+
+10.[VIEW_BILLING]
+	READ CustomerInfo.txt
+
+11.[EDIT_INFO]
+	if buyer
+		if name
+			READ CustomerInfo.txt
+			WRITE CustomerInfo.txt
+			READ BillingInfo.txt
+			WRITE BillingInfo.txt
+			READ CustomerOrderInfo.txt
+			WRITE CustomerOrderInfo.txt
+		else if number
+			READ CustomerInfo.txt
+			WRITE CustomerInfo.txt
+		else if address
+			READ CustomerInfo.txt
+			WRITE CustomerInfo.txt
+			READ BillingInfo.txt
+			WRITE BillingInfo.txt
+			READ CustomerOrderInfo.txt
+			WRITE CustomerOrderInfo.txt
+	else
+		if name
+			READ SellerInfo.txt
+			WRITE SellerInfo.txt
+		else if number
+			READ SellerInfo.txt
+			WRITE SellerInfo.txt
+		else if address
+			READ SellerInfo.txt
+			WRITE SellerInfo.txt
+
+12.[NEW_PRODUCT]
+	READ ProductInfo.txt
+	WRITE ProductInfo.txt
+
+13.[DELETE_PROD]
+	if (validate productID (READ ProductInfo.txt))
+		READ ProductInfo.txt
+		if (seller owns the product)
+			WRITE ProductInfo.txt
+	else
+		–
+
+14.[MOD_QUANT]
+	if (validate productID (READ ProductInfo.txt))
+		READ ProductInfo.txt
+		if (seller owns the product)
+			WRITE ProductInfo.txt
+	else
+		–
+
+15.[MOD_PRICE]
+	if (validate productID (READ ProductInfo.txt))
+		READ ProductInfo.txt
+		if (seller owns the product)
+			WRITE ProductInfo.txt
+	else
+		–
+
+16.[SELLER_ORDERS]
+	READ ProductInfo.txt
+	READ CustomerOrderInfo.txt
