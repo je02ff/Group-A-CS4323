@@ -66,5 +66,7 @@ void buyerModifiesOrder(char *buffer, int* clientSock);
 
 void readOrderDetails(char *buffer, int* clientSock);
 
+bool validateOrderIsBuyers(char *buffer, int* clientSock);
+
 
 #endif //GROUP_A_CS4323_RODEN_H
