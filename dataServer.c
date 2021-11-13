@@ -54,33 +54,41 @@ int main() {
                         //REQUIRED BUFFER STRING: "[NEW_CLIENT],[BUYER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"  <--notice buffer should end with ','
                         //OR REQUIRED BUFFER STRING: "[NEW_CLIENT],[SELLER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"
 
-                        writeNewClientData(buffer);              //send modified buffer to extract contents and write to ConsumerInfo or SellerInfo.txt
-                        writeSocket(&clientSock, "[CONFIRMATION]"); //Send confirmation to clientServer that info was added
+                        writeNewClientData(buffer, &clientSock);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
+
+                        //SENDS BACK: newClientID
 
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
                         /*2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]*/
-                        /*Required Buffer string: "[VALIDATE_ID],3432,[BUYER]"
-                        or "[VALIDATE_ID],numberID,[SELLER]"
-                        or "[VALIDATE_ID],numberID,[PRODUCT]"
-                        or "[VALIDATE_ID],numberID,[BILLING]"          */
-
-                        validateID(buffer);
+                        /*Required Buffer string: "[VALIDATE_ID],buyerID,[BUYER],"
+                                                or "[VALIDATE_ID],sellerID,[SELLER],"
+                                                or "[VALIDATE_ID],productID,[PRODUCT],"
+                                                or "[VALIDATE_ID],orderID,[BILLING],"
+                                                or "[VALIDATE_ID],productID,[ORDER],"          */
+                        bool result;
+                        result = validateID(buffer);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        if(result) {
+                            writeSocket(&clientSock, "[CONFIRMATION]");
+                        } else
+                            writeSocket(&clientSock, "[INVALID]");
 
-
+                        //SENDS BACK: [CONFIRMATION] OR [INVALID]
 
                     } else if(strstr(command, "[VIEW_PRODUCTS]") != NULL) {
                         /*3. View Available Products TCP COMMAND: [VIEW_PRODUCTS]*/
                         //REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],"
-                        //OR REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[SELLER],uuid,"
+                        //OR REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[SELLER],sellerID,"
 
                         viewProducts(buffer, &clientSock);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
+
+                        //SEND ALL: ProductIDs, Product Names, Quantitys, Price/Units*/
 
                     } else if(strstr(command, "[COMPLETE_ORDER]") != NULL) {
                         /*4. BuyerOPTION 1-3 Complete Order TCP COMMAND: [COMPLETE_ORDER]*/
@@ -90,6 +98,8 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: [CONFIRMATION] OR [INVALID]
+
                     } else if(strstr(command, "[VIEW_BUYER_ORDERS]") != NULL) {
                         /*5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]*/
                         //Required Buffer String: "[VIEW_BUYER_ORDERS],int buyerID,"
@@ -98,32 +108,47 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: orderID,TotalOrderCost,
+
+                    } else if(strstr(command, "[CHECK_BUYER]") != NULL) {
+                        /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
+                        //REQ Buffer String: [CHECK_BUYER],buyerID,orderID,
+
+                        bool result = validateOrderIsBuyers(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
+
+                        if(result)
+                            writeSocket(&clientSock, "[CONFIRMATION]");
+                        else
+                            writeSocket(&clientSock, "[INVALID]");
+
+                        //SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+
+                    }else if(strstr(command, "[ORDER_DETAILS]") != NULL) {
+                        /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [ORDER_DETAILS]*/
+                        //!!clientServer calls [CHECK_BUYER] first!!"
+                        //REQ Buffer String: "[ORDER_DETAILS],numberID,"
+
+                        readOrderDetails(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
+
+                        //SENDS BACK: productID,Product Name,quantityOrdered,TotalPrice,
 
                     } else if(strstr(command, "[MOD_ORDER]") != NULL) {
                         /*6. BuyerOPTION 3 Modify Order TCP COMMAND: [MOD_ORDER]*/
-                        //TODO
+                        //1.clientServer validates order belongs to buyer: [CHECK_BUYER],buyerID,orderID],
+                        //2.clientServer views order details: "[ORDER_DETAILS],orderID,"
+                        //3.clientServer validates productID:  "[VALIDATE_ID],productIDToReturn,[ORDER],"
+                        //4.lastly, clientServer calls "[MOD_ORDER],orderID,productIDToReturn"
 
-                        /*
-                     *** BUYER MODIFYING AN ORDER ***
-                         validateID(OrderID, "BillingInfo.txt")
-                         validateID(OrderID, ProductID, "CustomerOrder.txt")
-                         NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK with CustomerOrder.txt
+                        buyerModifiesOrder(buffer, &clientSock);
+                        bzero(buffer, MSG_BUFFER_SIZE);
+                        bzero(command, 25);
 
-                      */
-
-                        /*OrderID -- present in READ BillingInfo.txt //validateID(OrderID, "BillingInfo.txt")
-                        IF OK --> READ CustomerOrder.txt AND READ BillingInfo.txt
-                            SEND ProductID, Product Name, quantity, Total Price
-
-                        ClientOPTION 3-1 Return a product
-                        productID present in READ CustomerOrder.txt //validateID(OrderID, ProductID, "CustomerOrder.txt") NEED TO OVERLOAD THIS FUNCTION FOR IT TO WORK
-                        IF OK --> WRITE CustomerOrder.txt AND WRITE BillingInfo.txt AND WRITE ProductInfo.txt
-                            Send Order Modified
-                        ELSE
-                            SEND Invalid
-                        ELSE Invalid
-                            SEND Order Invalid*/
-
+                        //SENDS BACK: CONFIRMATION]
 
 
                     } else if(strstr(command, "[VIEW_BILLING]") != NULL) {
@@ -134,35 +159,24 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: buyerID,firstName,LastName,PhoneNumber,StreetAddress,city,state,zipCode
 
                     } else if(strstr(command, "[EDIT_INFO]") != NULL) {
                         /*8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]*/
                         /*REQ Buffer Strings:
-                         "[EDIT_INFO],[BUYER],clientID#,[NAME],firstName,lastName,"
-                         "[EDIT_INFO],[BUYER],clientID#,[NUMBER],phoneNum,"
-                         "[EDIT_INFO],[BUYER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
-                         "[EDIT_INFO],[SELLER],clientID#,[NAME],firstName,lastName,"
-                         "[EDIT_INFO],[SELLER],clientID#,[NUMBER],phoneNum,"
-                         "[EDIT_INFO],[SELLER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
+                         "[EDIT_INFO],[BUYER],buyerID#,[NAME],firstName,lastName,"
+                         "[EDIT_INFO],[BUYER],buyerID#,[NUMBER],phoneNum,"
+                         "[EDIT_INFO],[BUYER],buyerID#,[ADDRESS],streetNum,city,state,zipCode,"
+                         "[EDIT_INFO],[SELLER],sellerID#,[NAME],firstName,lastName,"
+                         "[EDIT_INFO],[SELLER],sellerID#,[NUMBER],phoneNum,"
+                         "[EDIT_INFO],[SELLER],sellerID#,[ADDRESS],streetNum,city,state,zipCode,"
                          */
+
                         clientEditsInfo(buffer, &clientSock);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
-                        /* READ CustomerInfo.txt
-                         IF Buyer
-                            IF EditName TCP COMMAND: [NAME]
-                                WRITE CustomerInfo.txt
-                                SEND Confirmation
-                            ELSE Number TCP COMMAND: [NUMBER]
-                                WRITE CustomerInfo.txt
-                                SEND Confirmation
-                            ELSE Address TCP COMMAND: [ADDRESS]
-                                WRITE CustomerInfo.txt
-                                WRITE BillingInfo.txt
-                                WRITE CustomerOrder.txt
-                                SEND Confirmation
-                            */
+                        //SENDS BACK: [CONFIRMATION]
 
                     } else if(strstr(command, "[NEW_PRODUCT]") != NULL) {
                         /*9. SellerOPTION 2 Add New Product TCP COMMAND: [NEW_PRODUCT]*/
@@ -172,6 +186,8 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: [CONFIRMATION]
+
                     } else if(strstr(command, "[DELETE_PROD]") != NULL) {
                         /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
                         //REQUIRED Buff string: "[DELETE_PROD],sellerID,productID,"
@@ -179,6 +195,8 @@ int main() {
                         deleteProduct(buffer, &clientSock, deletedProducts);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
+
+                        //SENDS BACK: [INVALID] OR [CONFIRMATION]
 
                     } else if(strstr(command, "[MOD_QUANT]") != NULL) {
                         /*11. SellerOption 4 Modify Product Quantity TCP COMMAND: [MOD_QUANT]*/
@@ -188,6 +206,8 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: [INVALID] OR [CONFIRMATION]
+
                     } else if(strstr(command, "[MOD_PRICE]") != NULL) {
                         /*12. SellerOption 5 Modify Product Price TCP COMMAND: [MOD_PRICE]*/
                         //REQ Buffer string: "[MOD_PRICE],sellerID,productID,priceToSet"
@@ -195,6 +215,8 @@ int main() {
                         modifyPrice(buffer, &clientSock);
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
+
+                        //SENDS BACK: [INVALID] OR [CONFIRMATION]
 
                     } else if(strstr(command, "[SELLER_ORDERS]") != NULL) {
                         /*13. SellerOption 6 View Product Orders TCP COMMAND: [SELLER_ORDERS]*/
@@ -204,6 +226,7 @@ int main() {
                         bzero(buffer, MSG_BUFFER_SIZE);
                         bzero(command, 25);
 
+                        //SENDS BACK: orderID,productID,quantityPurchased,totalPrice,firstName,lastName,streetAddress,city,state,zipCode,
                     }
                 }
 #pragma clang diagnostic pop

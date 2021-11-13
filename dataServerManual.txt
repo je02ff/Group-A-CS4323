@@ -1,0 +1,90 @@
+1.store new client data  TCP COMMAND: [NEW_CLIENT]
+    REQUIRED BUFFER STRING: "[NEW_CLIENT],[BUYER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"  <--*NOTICE* ALL sent buffers should end with ','
+                            "[NEW_CLIENT],[SELLER],FirstName,LastName,phoneNumber,streetAddress,City,State,zipcode,"
+
+    SENDS BACK: newClientID
+
+2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]
+    Required Buffer string:"[VALIDATE_ID],buyerID,[BUYER],"
+                        or "[VALIDATE_ID],sellerID,[SELLER],"
+                        or "[VALIDATE_ID],productID,[PRODUCT],"
+                        or "[VALIDATE_ID],orderID,[BILLING],"
+                        or "[VALIDATE_ID],productID,[ORDER],"
+
+    SENDS BACK: [CONFIRMATION] OR [INVALID]
+
+3. View Available Products TCP COMMAND: [VIEW_PRODUCTS]
+    REQUIRED BUFFER STRING: "[VIEW_PRODUCTS],[BUYER],"
+                            "[VIEW_PRODUCTS],[SELLER],sellerID,"
+
+    SENDS LIST OF: ProductIDs,Product Names,Quantity,PricePerUnit
+
+4. BuyerOPTION 1 Complete Order TCP COMMAND: [COMPLETE_ORDER]
+    Required Buffer String: "[COMPLETE_ORDER],buyerID,productID,quantityOrdered,pricePerUnit,productID,quantityOrdered,pricePerUnit, ...,"
+
+    SENDS BACK: [CONFIRMATION] OR [INVALID]
+
+5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]
+    Required Buffer String: "[VIEW_BUYER_ORDERS],buyerID,"
+
+    SENDS BACK LIST OF: orderID,TotalOrderCost,
+
+6. BuyerOPTION 3-1 Modify Order TCP COMMAND: [CHECK_BUYER]
+    REQ Buffer String: [CHECK_BUYER],buyerID,orderID,
+
+    SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+6. BuyerOPTION 3-2 Modify Order TCP COMMAND: [ORDER_DETAILS]
+    clientServer calls [CHECK_BUYER] first!!"
+    REQ Buffer String: "[ORDER_DETAILS],numberID,
+
+    SENDS BACK LIST OF: productID,Product Name,quantityOrdered,TotalPrice,
+
+6. BuyerOPTION 3-3 Modify Order TCP COMMAND: [MOD_ORDER]
+    1.clientServer validates order belongs to buyer: [CHECK_BUYER],buyerID,orderID],
+    2.clientServer views order details: "[ORDER_DETAILS],orderID,"
+    3.clientServer validates productID:  "[VALIDATE_ID],productIDToReturn,[ORDER],"
+    4.lastly, clientServer calls "[MOD_ORDER],orderID,productIDToReturn"
+
+    SENDS BACK: [CONFIRMATION]
+
+7. BuyerOPTION 4 View Billing Info TCP COMMAND: [VIEW_BILLING]
+    Required Buffer String: "[VIEW_BILLING],buyerID,"
+
+    SENDS BACK: buyerID,firstName,LastName,PhoneNumber,StreetAddress,city,state,zipCode
+
+8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]
+     REQ Buffer Strings:
+     "[EDIT_INFO],[BUYER],buyerID,[NAME],firstName,lastName,"
+     "[EDIT_INFO],[BUYER],buyerID,[NUMBER],phoneNum,"
+     "[EDIT_INFO],[BUYER],buyerID,[ADDRESS],streetNum,city,state,zipCode,"
+     "[EDIT_INFO],[SELLER],sellerID,[NAME],firstName,lastName,"
+     "[EDIT_INFO],[SELLER],sellerID,[NUMBER],phoneNum,"
+     "[EDIT_INFO],[SELLER],sellerID,[ADDRESS],streetNum,city,state,zipCode,"
+
+    SENDS BACK: [CONFIRMATION]
+
+9. SellerOPTION 2 Add New Product TCP COMMAND: [NEW_PRODUCT]
+    REQ Buffer string: "[NEW_PRODUCT],sellerID,productName,quantityAvailable,pricePerUnit,"
+
+    SENDS BACK: [CONFIRMATION]
+
+10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]
+    REQUIRED Buff string: "[DELETE_PROD],sellerID,productID,"
+
+    SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+11. SellerOption 4 Modify Product Quantity TCP COMMAND: [MOD_QUANT]
+    REQ Buffer string: "[MOD_QUANT],sellerID,productID,quantityToSet"
+
+    SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+12. SellerOption 5 Modify Product Price TCP COMMAND: [MOD_PRICE]
+    REQ Buffer string: "[MOD_PRICE],sellerID,productID,priceToSet"
+
+    SENDS BACK: [INVALID] OR [CONFIRMATION]
+
+13. SellerOption 6 View Product Orders TCP COMMAND: [SELLER_ORDERS]
+    REQ Buffer string: "[SELLER_ORDERS],sellerID,"
+
+    SENDS BACK LIST OF: orderID,productID,quantityPurchased,totalPrice,firstName,lastName,streetAddress,city,state,zipCode,
