@@ -62,11 +62,11 @@ int main() {
 
                     } else if(strstr(command, "[VALIDATE_ID]") != NULL) {
                         /*2.Validate an ID in a database  TCP COMMAND: [VALIDATE_ID]*/
-                        /*Required Buffer string: "buyerID,[BUYER],"
-                                                or "sellerID,[SELLER],"
-                                                or "productID,[PRODUCT],"
-                                                or "orderID,[BILLING],"
-                                                or "productID,[ORDER],"          */
+                        /*Required Buffer string: "[VALIDATE_ID],buyerID,[BUYER],"
+                                                or "[VALIDATE_ID],sellerID,[SELLER],"
+                                                or "[VALIDATE_ID],productID,[PRODUCT],"
+                                                or "[VALIDATE_ID],orderID,[BILLING],"
+                                                or "[VALIDATE_ID],productID,[ORDER],"          */
                         bool result;
                         result = validateID(buffer);
                         bzero(buffer, MSG_BUFFER_SIZE);
