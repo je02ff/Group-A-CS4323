@@ -228,10 +228,11 @@ void extractCommand(char *buffer, char *command) {
 }
 
 bool validateID(char* buffer) {
-    /*Required Buffer string: "idNumber,[BUYER]"
-                        or "idNumber,[SELLER]"
-                        or "idNumber,[PRODUCT]"
-                        or "idNumber,[BILLING]"          */
+    /*Required Buffer string: "buyerID,[BUYER]"
+                        or "sellerID,[SELLER]"
+                        or "productID,[PRODUCT]"
+                        or "orderID,[BILLING]"
+                        or "productID,[ORDER]"*/
     int idToValidate;
     char dbName[20];
     char* point;
@@ -280,13 +281,22 @@ bool validateID(char* buffer) {
                 rowCount++;
             }
         }
-        return false;
+    } else if (strstr(dbName, "[ORDER]") != NULL) {
+        struct csvCustomerOrderInfo orderData[maxRowsInDB];
+        if (loadCustomerOrderInfo(orderData)) {
+            while (orderData[rowCount].orderId != 0) {
+                if (orderData[rowCount].productId == idToValidate) { return true; }
+                rowCount++;
+            }
+        }
+    return false;
 
     } else return false;
 }
 
-void writeNewClientData(char *buffer) {
+void writeNewClientData(char *buffer, int* clientSock) {
     int uuid;
+    char stringID[5] = {0};
     char clientType[25] = {0};
     char firstName[25] = {0};
     char lastName[25] = {0};
@@ -356,6 +366,9 @@ void writeNewClientData(char *buffer) {
         strcpy(clientDB[lastOccupiedRow+1].state, state);
         strcpy(clientDB[lastOccupiedRow+1].zipCode, zipCode);
 
+        sprintf(stringID, "%d", uuid);
+        writeSocket(clientSock,stringID);
+
         //TODO: now write clientDB array back to its appropriate source.
     } else {
         int lastOccupiedRow = 0;
@@ -374,6 +387,9 @@ void writeNewClientData(char *buffer) {
         strcpy(clientDB[lastOccupiedRow+1].city, city);
         strcpy(clientDB[lastOccupiedRow+1].state, state);
         strcpy(clientDB[lastOccupiedRow+1].zipCode, zipCode);
+
+        sprintf(stringID, "%d", uuid);
+        writeSocket(clientSock,stringID);
 
         //TODO: now write clientDB array back to its appropriate source.
     }
@@ -1240,5 +1256,87 @@ void buyerEditsAddress(char* buffer, int id) {
     }
     //TODO write back customerOrderInfo to CustomerOrderInfo.txt
 }
+
+void buyerModifiesOrder(char *buffer, int* clientSock) {
+    struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+    struct csvBillingInfo billingInfo[maxRowsInDB];
+    struct csvCustomerOrderInfo modifiedCustomerOrderInfo[maxRowsInDB];
+    struct csvBillingInfo modifiedBillingInfo[maxRowsInDB];
+    char* ptr;
+    int productIDtoReturn;
+    int itemCost;
+    int rowCount;
+    int productRowLoc = 0;
+
+    ptr = strtok(buffer, ",");
+    productIDtoReturn = atoi(ptr);
+
+    loadCustomerOrderInfo(customerOrderInfo);
+    loadBillingInfo(billingInfo);
+
+    //find the product to remove in CustomerOrderInfo
+    while(customerOrderInfo[productRowLoc].productId != productIDtoReturn) {
+        productRowLoc++;
+    }
+
+}
+
+void readOrderDetails(char *buffer, int* clientSock) {
+    struct itemOrder itemsInOrder[200];
+    struct csvCustomerOrderInfo customerOrderInfo[maxRowsInDB];
+    struct csvProductInfo pList[maxRowsInDB];
+    int rowCount = 0;
+    char* ptr;
+    int orderID;
+    int numOfProducts = 0;
+    char dataToSendClient[MSG_BUFFER_SIZE] = {0};
+    char numsToString[20];
+
+    ptr = strtok(buffer, ",");
+    orderID = atoi(ptr);
+
+    //get productIds, quantity purchased, and item price total
+    loadCustomerOrderInfo(customerOrderInfo);
+    while(customerOrderInfo[rowCount].orderId != 0) {
+        if (customerOrderInfo[rowCount].orderId == orderID) {
+           itemsInOrder[numOfProducts].productID = customerOrderInfo[rowCount].productId;
+           itemsInOrder[numOfProducts].quantity = customerOrderInfo[rowCount].quantityPurchased;
+           itemsInOrder[numOfProducts].itemCostPerUnit = customerOrderInfo[rowCount].totalPrice;
+           numOfProducts++;
+        }
+        rowCount++;
+    }
+    //getting product names
+    loadProductInfo(pList);
+    for(int i = 0; i < numOfProducts; i++) {
+        rowCount = 0;
+        while(pList[rowCount].productId != 0) {
+            if(itemsInOrder[i].productID == pList[rowCount].productId) {
+
+                sprintf(numsToString,"%d", itemsInOrder[i].productID);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                strcat(dataToSendClient, pList[rowCount].productName);
+                strcat(dataToSendClient, ",");
+
+                sprintf(numsToString,"%d", itemsInOrder[i].quantity);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+                sprintf(numsToString,"%d", itemsInOrder[i].itemCostPerUnit);
+                strcat(dataToSendClient, numsToString);
+                strcat(dataToSendClient, ",");
+                bzero(numsToString, 20);
+
+            }
+            rowCount++;
+        }
+    }
+    writeSocket(clientSock, dataToSendClient);
+}
+
 
 #pragma clang diagnostic pop

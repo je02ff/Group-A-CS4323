@@ -16,7 +16,7 @@ int generateUID();
 
 void extractCommand(char *buffer, char *command);
 
-void writeNewClientData(char *buffer);
+void writeNewClientData(char *buffer, int* clientSock);
 
 void viewProducts(char *buffer, int* clientSock);
 
@@ -61,5 +61,10 @@ void buyerEditsNumber(char* buffer, int id);
 void buyerEditsName(char* buffer, int id);
 
 void buyerEditsAddress(char* buffer, int id);
+
+void buyerModifiesOrder(char *buffer, int* clientSock);
+
+void readOrderDetails(char *buffer, int* clientSock);
+
 
 #endif //GROUP_A_CS4323_RODEN_H
