@@ -20,12 +20,12 @@
     SENDS LIST OF: ProductIDs,Product Names,Quantity,PricePerUnit
 
 4. BuyerOPTION 1 Complete Order TCP COMMAND: [COMPLETE_ORDER]
-    Required Buffer String: "[COMPLETE_ORDER],int buyerID,int productID,int quantityOrdered,int pricePerUnit,int productID,int quantityOrdered,int pricePerUnit, ...,"
+    Required Buffer String: "[COMPLETE_ORDER],buyerID,productID,quantityOrdered,pricePerUnit,productID,quantityOrdered,pricePerUnit, ...,"
 
     SENDS BACK: [CONFIRMATION] OR [INVALID]
 
 5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]
-    Required Buffer String: "[VIEW_BUYER_ORDERS],int buyerID,"
+    Required Buffer String: "[VIEW_BUYER_ORDERS],buyerID,"
 
     //SENDS BACK LIST OF: orderID,TotalOrderCost,
 
@@ -49,18 +49,18 @@
     SENDS BACK: [CONFIRMATION]
 
 7. BuyerOPTION 4 View Billing Info TCP COMMAND: [VIEW_BILLING]
-    Required Buffer String: "[VIEW_BILLING],int buyerID,"
+    Required Buffer String: "[VIEW_BILLING],buyerID,"
 
     SENDS BACK: buyerID,firstName,LastName,PhoneNumber,StreetAddress,city,state,zipCode
 
 8. BuyerOPTION/SellerOPTION 5 Edit Info TCP COMMAND: [EDIT_INFO]
      REQ Buffer Strings:
-     "[EDIT_INFO],[BUYER],buyerID#,[NAME],firstName,lastName,"
-     "[EDIT_INFO],[BUYER],buyerID#,[NUMBER],phoneNum,"
-     "[EDIT_INFO],[BUYER],buyerID#,[ADDRESS],streetNum,city,state,zipCode,"
-     "[EDIT_INFO],[SELLER],sellerID#,[NAME],firstName,lastName,"
-     "[EDIT_INFO],[SELLER],sellerID#,[NUMBER],phoneNum,"
-     "[EDIT_INFO],[SELLER],sellerID#,[ADDRESS],streetNum,city,state,zipCode,"
+     "[EDIT_INFO],[BUYER],buyerID,[NAME],firstName,lastName,"
+     "[EDIT_INFO],[BUYER],buyerID,[NUMBER],phoneNum,"
+     "[EDIT_INFO],[BUYER],buyerID,[ADDRESS],streetNum,city,state,zipCode,"
+     "[EDIT_INFO],[SELLER],sellerID,[NAME],firstName,lastName,"
+     "[EDIT_INFO],[SELLER],sellerID,[NUMBER],phoneNum,"
+     "[EDIT_INFO],[SELLER],sellerID,[ADDRESS],streetNum,city,state,zipCode,"
 
     SENDS BACK: [CONFIRMATION]
 
