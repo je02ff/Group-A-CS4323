@@ -16,20 +16,20 @@
 #define PORT 8080
 
 // menu functions
-void initialMenu();
-void buyerLogin();
-void buyerMenu();
-void sellerLogin();
-void sellerMenu();
-void userRegister(int type);
-void IDLogin(int type);
+void initialMenu(int clientSock);
+void buyerLogin(int clientSock);
+void buyerMenu(int clientSock);
+void sellerLogin(int clientSock);
+void sellerMenu(int clientSock);
+void userRegister(int type, int clientSock);
+void IDLogin(int type, int clientSock);
 
 // info handling functions
-void makeOrder();
+void makeOrder(int clientSock);
 void viewOrder();
 void modifyOrder();
 void viewBill();
-void editInfo();
+void editInfo(int type, int clientSock);
 void completeOrder();
 void viewProducts();
 void addProduct();

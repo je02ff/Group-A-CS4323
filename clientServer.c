@@ -10,18 +10,21 @@
 
 #include "clientServer.h"
 
+// global variables
 sem_t lock; // initialize lock for loading data properly
 FILE *file; // to use for writing to .txt files
+char *command; // for sending to dataServer
+char *message; // to send messages through buffer
+char buffer[1024] = {0}; // buffer value to use when sending/receiving messages
 
 /*  function to connect the client to the server
     params: none
     returns: int (the client value) */
 int clientConnect() {
-    int clientSocket, inputVal;
-    char buffer[1024] = {0}; // buffer value to use when sending/receiving messages
-    char *message = "Connection successful"; // to send as message if connection is properly established 
+    int readBuffer;
+    int clientSocket = 0;
 
-    struct sockaddr_in serverAdress;
+    struct sockaddr_in serverAddress;
 
     clientSocket = socket(AF_INET, SOCK_STREAM, 0); // create socket
 
@@ -31,32 +34,50 @@ int clientConnect() {
     }
 
     // set values for server struct
-    serverAdress.sin_family = AF_INET;
-    serverAdress.sin_port = htons(PORT); 
-    serverAdress.sin_addr.s_addr = INADDR_ANY;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(PORT); 
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+    // establish ports to use to connect to server
+    int intNetVal = inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr);
+    int connection = connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
     // check if the address is valid or not
-    if (inet_pton(AF_INET, "127.0.0.1", &serverAdress.sin_addr) <= 0) {
+    if (intNetVal <= 0) {
         printf("\nAddress invalid\n");
-        return -1;
+        exit(1);
     }
     // ensure the connection is valid
-    if (connect(clientSocket, (struct sockaddr *)&serverAdress, sizeof(serverAdress)) < 0) {
+    if (connection < 0) {
         printf("\nBinding connection failed! Please make sure server is running\n");
-        return -1;
+        exit(1);
     }
     
-    // if the connection is succesful, send data through socket
-    send(clientSocket, message, strlen(message), 0);
     printf("\nSuccessfully connected to server!\n");
 
-    return 0;
+    return clientSocket;
+}
+
+/*  function to send data from client to server
+    params: int socket, char* command
+    returns: void */
+void clientSend(int socket, char *command) {
+    send(socket, &buffer, sizeof(int), 0);
+    send(socket, command, sizeof(char), 0);
+}
+
+/*  function to receive data from server
+    params: int socket, char* receive
+    returns: void */
+void clientReceive(int socket) {
+    int readBuffer = read(socket, buffer, 1024);
+    printf("%s\n", buffer);
 }
 
 /*  function to display and handle the initial menu of the program
-    params: none 
+    params: int clientSock
     returns: void */
-void initialMenu() {
+void initialMenu(int clientSock) {
     int selection;
 
     printf("\nPlease select an option below - \n\n");
@@ -73,9 +94,9 @@ void initialMenu() {
         // use switch case to determine which menu to show
         switch (selection) {
             case 1: // go to buyerLogin()
-                buyerLogin();
+                buyerLogin(clientSock);
             case 2: // go to sellerLogin()
-                sellerLogin();
+                sellerLogin(clientSock);
             case 3: // exit program
                 printf("\nProgram Terminated\n");
                 exit(0);
@@ -88,7 +109,7 @@ void initialMenu() {
 /*  function to handle when the user chooses to login as a buyer
     params: none
     returns: void */
-void buyerLogin() {
+void buyerLogin(int clientSock) {
     int select;
     int type = 0; // for register option
 
@@ -109,12 +130,12 @@ void buyerLogin() {
         switch (select) {
             case 1: // new customer registration
                 //system("clear");
-                userRegister(type);
+                userRegister(type, clientSock);
             case 2: // login with customer ID
-                IDLogin(type);
+                IDLogin(type, clientSock);
             case 3: // go back to main menu
                 //system("clear");
-                initialMenu();
+                initialMenu(clientSock);
             case 4:
                 exit(0);
             default:
@@ -126,7 +147,7 @@ void buyerLogin() {
 /*  function to handle when the user chooses to login as a seller
     params: none
     returns: void */
-void sellerLogin() {
+void sellerLogin(int clientSock) {
     int select;
     int type = 1; // for register option
 
@@ -147,12 +168,12 @@ void sellerLogin() {
         switch (select) {
             case 1: // new seller registration
                 //system("clear");
-                userRegister(type);
+                userRegister(type, clientSock);
             case 2: // login with sellerID
-                IDLogin(type);
+                IDLogin(type, clientSock);
             case 3: // go back to the initial menu
                 //system("clear");
-                initialMenu();
+                initialMenu(clientSock);
             case 4: // exit program
                 exit(0);
             default:
@@ -164,12 +185,14 @@ void sellerLogin() {
 /*  function to register the user (as buyer or seller)
     params: int type (to distinguish between buyer and seller)
     returns: void */
-void userRegister(int type) {
+void userRegister(int type, int clientSock) {
     // declare variables to store info needed for registering users
     char firstName[50];
     char lastName[50];
     char num[50];
     char address[100];
+
+    int clientAddress = 0;
 
     if (type == 0) { // if it's a buyer registering
         file = fopen("CustomerInfoTest.txt", "a"); // open CustomerInfo.txt for appending ID, name, num, and address 
@@ -200,12 +223,23 @@ void userRegister(int type) {
         printf("\nAddress Entered: %s", address); // return address to make sure input is correct
 
         /** TODO: Write info to client server **/
+        command = "[NEW_CLIENT]";
+        message = ("%s,[BUYER],%s,%s,%s,%s", command, firstName, lastName, num, address);
+
+        //send(clientSocket, message, strlen(message), 0); // send message to dataServer
+        //receiveValue = read(clientSocket, buffer, 1024);
+        clientSend(clientSock, command);
+        clientReceive(clientSock);
+        printf("%s\n", buffer);
+
+
         fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
         fclose(file); // close the file to save the info 
 
-        buyerMenu(); // go to buyer menu
+        buyerMenu(clientSock); // go to buyer menu
     }
     else { // if it's a seller registering
+
         file = fopen("SellerInfoTest.txt", "a"); // open SellerInfo.txt for appending ID, name, num, and address 
 
         if (file == NULL) { // in case file is inaccessible
@@ -236,21 +270,21 @@ void userRegister(int type) {
         /** TODO: Write info to client server **/
         fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
 
-        sellerMenu(); // go to seller menu
+        sellerMenu(clientSock); // go to seller menu
     }
 }
 
 /*  function to handle the login of the user (both buyer and seller)
     params: int type (to distinct between buyer and seller)
     returns: void */
-void IDLogin(int type) {
+void IDLogin(int type, int clientSock) {
     /** TODO: Perform a check to the database that determines if the credentials are valid or not **/
 }
 
 /*  function to handle the buyer menu model once successfully logged in
     params: none
     returns: void */
-void buyerMenu() {
+void buyerMenu(int clientSock) {
     int select;
     int type = 0; // to distinguish from seller
 
@@ -273,7 +307,7 @@ void buyerMenu() {
         // use switch case for handling
         switch (select) {
             case 1: // make an order
-                makeOrder();
+                makeOrder(clientSock);
             case 2: // view orders
                 viewOrder();
             case 3: // modify order
@@ -281,9 +315,9 @@ void buyerMenu() {
             case 4: // view billing info
                 viewBill();
             case 5: // edit info
-                editInfo(type);
+                editInfo(type, clientSock);
             case 6: // back to main menu
-                initialMenu();
+                initialMenu(clientSock);
             case 7: // exit case
                 exit(0);
             default:
@@ -295,7 +329,7 @@ void buyerMenu() {
 /*  function to let buyer make an order
     params: none
     returns: void */
-void makeOrder() {
+void makeOrder(int clientSock) {
     int select;
 
     // display options to user
@@ -318,7 +352,7 @@ void makeOrder() {
             case 3: // complete order
                 completeOrder();
             case 4: // back to buyer menu
-                buyerMenu();
+                buyerMenu(clientSock);
             case 5: // exit program
                 printf("\nProgram Terminated\n");
                 exit(0);
@@ -357,7 +391,7 @@ void viewBill() {
 /*  function to edit stored info
     params: none
     returns: void */
-void editInfo(int type) {
+void editInfo(int type, int clientSock) {
     /*** TODO: let user edit their info as necessary, maybe use params to help transfer data ***/
     // initialize variables to be used
     char newName[100];
@@ -388,9 +422,9 @@ void editInfo(int type) {
             printf("New address entered, %s", newAddress);
         case 4: // return to whichever menu came from
             if (type == 0)
-                buyerMenu();
+                buyerMenu(clientSock);
             else
-                sellerMenu();
+                sellerMenu(clientSock);
     }
 }
 
@@ -434,7 +468,7 @@ void addProduct() {
 /*  function to handle the seller menu model once successfully logged in
     params: none
     returns: void */
-void sellerMenu() {
+void sellerMenu(int clientSock) {
     int select;
     int type = 1; // to distinguish from buyer
 
@@ -471,9 +505,9 @@ void sellerMenu() {
             case 6: // view product orders
                 viewOrder();
             case 7: // edit seller info
-                editInfo(type);
+                editInfo(type, clientSock);
             case 8: // return to main menu
-                initialMenu();
+                initialMenu(clientSock);
             case 9: // exit case
                 printf("Program Terminated\n");
                 exit(0);
@@ -557,9 +591,13 @@ void modifyPrice() {
 
 // main function to test functions
 int main() {
-    if (clientConnect() == 0) {
-        initialMenu();
+    int clientSock = clientConnect();
+
+    while (1) {
+        //recv(clientSock, 0, sizeof(int), 0);
+        initialMenu(clientSock);
     }
-    else
-        return 0;
+
+    close(clientSock);
+    return 0;
 }
