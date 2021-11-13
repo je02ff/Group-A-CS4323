@@ -11,12 +11,14 @@
 #include "clientServer.h"
 
 sem_t lock; // initialize lock for loading data properly
+FILE *file; // to use for writing to .txt files
 
 /*  function to connect the client to the server
     params: none
     returns: int (the client value) */
 int clientConnect() {
-    int clientSocket;
+    int clientSocket, inputVal;
+    char buffer[1024] = {0}; // buffer value to use when sending/receiving messages
     char *message = "Connection successful"; // to send as message if connection is properly established 
 
     struct sockaddr_in serverAdress;
@@ -40,7 +42,7 @@ int clientConnect() {
     }
     // ensure the connection is valid
     if (connect(clientSocket, (struct sockaddr *)&serverAdress, sizeof(serverAdress)) < 0) {
-        printf("\nBinding connection failed\n");
+        printf("\nBinding connection failed! Please make sure server is running\n");
         return -1;
     }
     
@@ -109,7 +111,7 @@ void buyerLogin() {
                 //system("clear");
                 userRegister(type);
             case 2: // login with customer ID
-                //IDLogin();
+                IDLogin(type);
             case 3: // go back to main menu
                 //system("clear");
                 initialMenu();
@@ -147,7 +149,7 @@ void sellerLogin() {
                 //system("clear");
                 userRegister(type);
             case 2: // login with sellerID
-                //IDLogin();
+                IDLogin(type);
             case 3: // go back to the initial menu
                 //system("clear");
                 initialMenu();
@@ -164,15 +166,27 @@ void sellerLogin() {
     returns: void */
 void userRegister(int type) {
     // declare variables to store info needed for registering users
-    char name[100];
+    char firstName[50];
+    char lastName[50];
     char num[50];
     char address[100];
 
     if (type == 0) { // if it's a buyer registering
+        file = fopen("CustomerInfoTest.txt", "a"); // open CustomerInfo.txt for appending ID, name, num, and address 
+        /*** Used different location from CustomerInfo.txt for testing purposes ***/
+        if (file == NULL) { // in case file is inaccessible
+            printf("\nError accessing file CustomerInfo.txt!\n");
+            exit(1);
+        }
+
         // get name info
-        printf("Please Enter Name: "); 
-        scanf(" %[^\n]", name);
-        printf("\nHello, %s!", name); // return name to make sure input is correct
+        printf("Please Enter First Name: "); 
+        scanf(" %[^\n]", firstName);
+
+        printf("\nPlease Enter Last Name: "); 
+        scanf(" %[^\n]", lastName);
+
+        printf("\nHello, %s %s!", firstName, lastName); // return full name to make sure input is correct
 
         // get number info
         printf("\n\nPlease Enter Contact Number: "); 
@@ -180,19 +194,33 @@ void userRegister(int type) {
         printf("\nNumber Entered: %s", num); // return number to make sure input is correct
 
         // get address info
-        printf("\n\nPlease Enter Address (Format: Street Name, City, State, Zip Code): "); 
+        printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):"); 
+        printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
         scanf(" %[^\n]", address);
         printf("\nAddress Entered: %s", address); // return address to make sure input is correct
 
         /** TODO: Write info to client server **/
+        fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
+        fclose(file); // close the file to save the info 
 
         buyerMenu(); // go to buyer menu
     }
     else { // if it's a seller registering
+        file = fopen("SellerInfoTest.txt", "a"); // open SellerInfo.txt for appending ID, name, num, and address 
+
+        if (file == NULL) { // in case file is inaccessible
+            printf("\nError accessing file SellerInfo.txt!\n");
+            exit(1);
+        }
+
         // get name info
-        printf("Please Enter Name: "); 
-        scanf(" %[^\n]", name);
-        printf("\nHello, %s!", name); // return name to make sure input is correct
+        printf("Please Enter First Name: "); 
+        scanf(" %[^\n]", firstName);
+
+        printf("\nPlease Enter Last Name: ");
+        scanf(" %[^\n]", lastName);
+
+        printf("\nHello, %s %s!", firstName, lastName); // return full name
 
         // get number info
         printf("\n\nPlease Enter Contact Number: ");
@@ -200,11 +228,13 @@ void userRegister(int type) {
         printf("\nNumber Entered: %s", num); // return number to make sure input is correct
 
         // get address info
-        printf("\n\nPlease Enter Address (Format: Street Name, City, State, Zip Code): "); 
+        printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):"); 
+        printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
         scanf(" %[^\n]", address);
         printf("\nAddress Entered: %s", address); // return address to make sure input is correct
 
         /** TODO: Write info to client server **/
+        fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
 
         sellerMenu(); // go to seller menu
     }
@@ -527,6 +557,9 @@ void modifyPrice() {
 
 // main function to test functions
 int main() {
-    clientConnect();
-    initialMenu();
+    if (clientConnect() == 0) {
+        initialMenu();
+    }
+    else
+        return 0;
 }
