@@ -27,7 +27,7 @@
 5. BuyerOPTION 2 View Orders TCP COMMAND: [VIEW_BUYER_ORDERS]
     Required Buffer String: "[VIEW_BUYER_ORDERS],buyerID,"
 
-    //SENDS BACK LIST OF: orderID,TotalOrderCost,
+    SENDS BACK LIST OF: orderID,TotalOrderCost,
 
 6. BuyerOPTION 3-1 Modify Order TCP COMMAND: [CHECK_BUYER]
     REQ Buffer String: [CHECK_BUYER],buyerID,orderID,
