@@ -41,7 +41,7 @@ int main() {
     int clientSock;
     struct sockaddr_in server = {0};
     struct sockaddr_in client = {0};
-    char buffer[MSG_BUFFER_SIZE];
+    char buffer[MSG_BUFFER_SIZE] = {0};
     pid_t pid;
 
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
@@ -51,24 +51,27 @@ int main() {
     /*----Forking Clients---- */
     while (1) {
         if (acceptConnection(&clientSock, &hSocket, &client) == true) { //Accept incoming client connection
-            pid = fork();                                               //Fork client process
+  /*          pid = fork();                                               //Fork client process
             if(pid == 0) {                                              //code for child(client) process
-                close(hSocket);
+                close(hSocket);*/
 
                 /*---Main Logic Loop: Driven by Client Commands ---*/
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
                 while(1) {
                     bzero(buffer, MSG_BUFFER_SIZE);
                     readSocket(&clientSock, buffer);
                     writeSocket(&clientSock, buffer);
                     bzero(buffer, MSG_BUFFER_SIZE);
                 }
-            } else if(pid > 0) {                                        //I'm the parent, Do parent things
+#pragma clang diagnostic pop
+           /* } else if(pid > 0) {                                        //I'm the parent, Do parent things
                 close(clientSock);                                      //close childSocket, parent uses hSocket
                 wait(NULL);                                     //reap children
             } else {
                 printf("Fork failed!\n");
                 exit(1);
-            }
+            }*/
         }
     }
     return 0;
@@ -120,7 +123,7 @@ bool acceptConnection(int* clientSock, const int* hSock, struct sockaddr_in* cli
 
 void readSocket(const int* sock, char* buffer) {
 
-    if(read(*sock, buffer, MSG_BUFFER_SIZE) == -1) {
+    if(read(*sock, buffer, 10240) == -1) {
         printf("failed to read socket\n");
         exit(1);
     }
@@ -128,7 +131,7 @@ void readSocket(const int* sock, char* buffer) {
 
 void writeSocket(const int* sock, char* buffer) {
 
-    if (write(*sock, buffer, MSG_BUFFER_SIZE) == -1) {
+    if (write(*sock, buffer, 10240) == -1) {
         printf("failed to write socket\n\n");
         exit(1);
     }
