@@ -13,7 +13,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#define PORT 8080
+#define PORT 8081
 
 // menu functions
 void initialMenu(int clientSock);

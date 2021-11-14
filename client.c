@@ -8,7 +8,7 @@
     
     To run file use command "gcc -o clientServer clientServer.c -lpthread" */
 
-#include "clientServer.h"
+#include "client.h"
 
 /*  function to connect the client to the server
     params: none
@@ -193,17 +193,32 @@ void sellerLogin(int clientSock) {
     }
 }
 
+void readSocket(const int* sock, char* buffer) {
+    if(read(*sock, buffer, sizeof(buffer)) == -1) {
+        printf("failed to read socket\n");
+        exit(1);
+    }
+}
+
+void writeSocket(const int* sock, char* buffer) {
+    if (write(*sock, buffer, sizeof(buffer)) == -1) {
+        printf("failed to write socket\n\n");
+        exit(1);
+    }
+
+}
+
 /*  function to register the user (as buyer or seller)
     params: int type (to distinguish between buyer and seller)
     returns: void */
 void userRegister(int type, int clientSock) {
     // declare variables to store info needed for registering users
-    char firstName[50];
-    char lastName[50];
-    char num[50];
-    char address[100];
+    char firstName[50] = {0};
+    char lastName[50] = {0};
+    char num[50] = {0};
+    char address[100] = {0};
     char *command;
-    char *buffer;
+    char buffer[25] = {0};
     char *message;
 
     int clientAddress = 0;
@@ -217,36 +232,43 @@ void userRegister(int type, int clientSock) {
         } */
 
         // get name info
-        printf("Please Enter First Name: "); 
-        scanf(" %[^\n]", firstName);
+        for(;;) {
+            memset(&message, 0, sizeof(message));
 
-        printf("\nPlease Enter Last Name: "); 
-        scanf(" %[^\n]", lastName);
+            printf("Please Enter First Name: ");
+            scanf(" %[^\n]", firstName);
 
-        printf("\nHello, %s %s!", firstName, lastName); // return full name to make sure input is correct
+            printf("\nPlease Enter Last Name: ");
+            scanf(" %[^\n]", lastName);
 
-        // get number info
-        printf("\n\nPlease Enter Contact Number: "); 
-        scanf(" %[^\n]", num);
-        printf("\nNumber Entered: %s", num); // return number to make sure input is correct
+            printf("\nHello, %s %s!", firstName, lastName); // return full name to make sure input is correct
 
-        // get address info
-        printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):"); 
-        printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
-        scanf(" %[^\n]", address);
-        printf("\nAddress Entered: %s", address); // return address to make sure input is correct
+            // get number info
+            printf("\n\nPlease Enter Contact Number: ");
+            scanf(" %[^\n]", num);
+            printf("\nNumber Entered: %s", num); // return number to make sure input is correct
 
-        /** TODO: Write info to client server **/
-        command = "[NEW_CLIENT]";
-        message = ("%s,[BUYER],%s,%s,%s,%s", command, firstName, lastName, num, address);
+            // get address info
+            printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):");
+            printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
+            scanf(" %[^\n]", address);
+            printf("\nAddress Entered: %s", address); // return address to make sure input is correct
 
-        //send(clientSocket, message, strlen(message), 0); // send message to dataServer
-        //receiveValue = read(clientSocket, buffer, 1024);
-        //clientSend(&clientSock, message);
-        //clientReceive(&clientSock, message);
-        clientComm(clientSock, command);
-        printf("%s\n", buffer);
+            /** TODO: Write info to client server **/
+            command = "[NEW_CLIENT]";
+            message = ("%s,[BUYER],%s,%s,%s,%s,", command, firstName, lastName, num, address);
 
+            // headache portion
+            write(clientSock, message, sizeof(message));
+            memset(&message, 0, sizeof(message));
+            read(clientSock, message, sizeof(message));
+            // send(clientSocket, message, strlen(message), 0); // send message to dataServer
+            // receiveValue = read(clientSocket, buffer, 1024);
+            // clientSend(&clientSock, message);
+            // clientReceive(&clientSock, message);
+            // clientComm(clientSock, command);
+            printf("Server Message: %s\n", message);
+        }
         //fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
         //fclose(file); // close the file to save the info 
 
@@ -624,7 +646,7 @@ int main() {
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // establish connection to server
-    int connection = connect(clientSocket, (struct sockaddr *)&server, sizeof(server));
+    int connection = connect(clientSocket, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
 
     // ensure the connection is valid
     if (connection < 0) {
