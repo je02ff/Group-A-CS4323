@@ -59,6 +59,8 @@ int main() {
                 while(1) {
                     bzero(buffer, MSG_BUFFER_SIZE);
                     readSocket(&clientSock, buffer);
+                    writeSocket(&clientSock, buffer);
+                    bzero(buffer, MSG_BUFFER_SIZE);
                 }
             } else if(pid > 0) {                                        //I'm the parent, Do parent things
                 close(clientSock);                                      //close childSocket, parent uses hSocket
