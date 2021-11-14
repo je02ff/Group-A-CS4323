@@ -229,8 +229,11 @@ void userRegister(int type, int clientSock) {
         /** TODO: Write info to client server **/
         strcat(buffer, "[NEW_CLIENT],[BUYER],");
         strcat(buffer, firstName);
+        strcat(buffer, ",");
         strcat(buffer, lastName);
+        strcat(buffer, ",");
         strcat(buffer, num);
+        strcat(buffer, ",");
         strcat(buffer, address);
         strcat(buffer, ",");
 
