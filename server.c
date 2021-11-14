@@ -51,9 +51,9 @@ int main() {
     /*----Forking Clients---- */
     while (1) {
         if (acceptConnection(&clientSock, &hSocket, &client) == true) { //Accept incoming client connection
-  /*          pid = fork();                                               //Fork client process
+            pid = fork();                                               //Fork client process
             if(pid == 0) {                                              //code for child(client) process
-                close(hSocket);*/
+                close(hSocket);
 
                 /*---Main Logic Loop: Driven by Client Commands ---*/
 #pragma clang diagnostic push
@@ -65,13 +65,13 @@ int main() {
                     bzero(buffer, MSG_BUFFER_SIZE);
                 }
 #pragma clang diagnostic pop
-           /* } else if(pid > 0) {                                        //I'm the parent, Do parent things
+            } else if(pid > 0) {                                        //I'm the parent, Do parent things
                 close(clientSock);                                      //close childSocket, parent uses hSocket
                 wait(NULL);                                     //reap children
             } else {
                 printf("Fork failed!\n");
                 exit(1);
-            }*/
+            }
         }
     }
     return 0;
