@@ -6,26 +6,14 @@
     Program Description: This file handles the structuring of the client side of the program,
     both the buyer and seller   
     
-    To run file individually, use command "gcc -o clientServer clientServer.c -lpthread" */
+    To run file use command "gcc -o clientServer clientServer.c -lpthread" */
 
 #include "clientServer.h"
-
-// global variables
-sem_t lock; // initialize lock for loading data properly
-FILE *file; // to use for writing to .txt files
-char *command; // for sending to dataServer
-char *message; // to send messages through buffer
-char buffer[1024] = {0}; // buffer value to use when sending/receiving messages
 
 /*  function to connect the client to the server
     params: none
     returns: int (the client value) */
-int clientConnect() {
-    int readBuffer;
-    int clientSocket = 0;
-
-    struct sockaddr_in serverAddress;
-
+int clientConnect(struct sockaddr_in *serverAddress, int clientSocket) {
     clientSocket = socket(AF_INET, SOCK_STREAM, 0); // create socket
 
     if (clientSocket < 0) {
@@ -33,45 +21,68 @@ int clientConnect() {
         return -1;
     }
 
-    // set values for server struct
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(PORT); 
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
+    memset(&serverAddress, 0, sizeof(serverAddress)); // clear memory
 
-    // establish ports to use to connect to server
-    int intNetVal = inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr);
-    int connection = connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+    // set values for server struct port
+    serverAddress->sin_family = AF_INET;
+    serverAddress->sin_port = htons(PORT); 
+    serverAddress->sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    // check if the address is valid or not
-    if (intNetVal <= 0) {
-        printf("\nAddress invalid\n");
-        exit(1);
-    }
+    // establish connection to server
+    int connection = connect(clientSocket, (struct sockaddr *)&(*serverAddress), sizeof(*serverAddress));
+
     // ensure the connection is valid
     if (connection < 0) {
         printf("\nBinding connection failed! Please make sure server is running\n");
-        exit(1);
+        exit(0);
     }
     
     printf("\nSuccessfully connected to server!\n");
+}
 
-    return clientSocket;
+/*  function to read/write between client and server
+    params: int clientSocket
+    returns: void */
+void clientComm(int clientSocket, char *message) {
+    // declare variables to be used
+    char buff[25];
+    int size;
+
+    while (1) {
+        memset(buff, 0, sizeof(buff)); // clear buffer
+        size = 0;
+
+        while((buff[size++] = getchar()) != '\n')
+            ; // do nothing
+        write(clientSocket, buff, sizeof(buff));
+        memset(buff, 0, sizeof(buff));
+        read(clientSocket, buff, sizeof(buff));
+        printf("From server: %s", buff);
+        if ((strncmp(buff, "exit", 4)) == 0) {
+            printf("\nExiting...\n");
+            break;
+        }
+    }
 }
 
 /*  function to send data from client to server
     params: int socket, char* command
     returns: void */
-void clientSend(int socket, char *command) {
-    send(socket, &buffer, sizeof(int), 0);
-    send(socket, command, sizeof(char), 0);
+void clientSend(int *socketVal, char *buff) {
+    if (write(*socketVal, buff, sizeof(buff)) == -1) {
+        printf("\nCould not write to socket\n\n");
+        exit(0);
+    }
 }
 
 /*  function to receive data from server
     params: int socket, char* receive
     returns: void */
-void clientReceive(int socket) {
-    int readBuffer = read(socket, buffer, 1024);
-    printf("%s\n", buffer);
+void clientReceive(int *socketVal, char *buff) {
+    if (read(*socketVal, buff, sizeof(buff)) == -1) {
+        printf("\nCould not read from socket\n\n");
+        exit(1);
+    }
 }
 
 /*  function to display and handle the initial menu of the program
@@ -191,16 +202,19 @@ void userRegister(int type, int clientSock) {
     char lastName[50];
     char num[50];
     char address[100];
+    char *command;
+    char *buffer;
+    char *message;
 
     int clientAddress = 0;
 
     if (type == 0) { // if it's a buyer registering
-        file = fopen("CustomerInfoTest.txt", "a"); // open CustomerInfo.txt for appending ID, name, num, and address 
+        //file = fopen("CustomerInfoTest.txt", "a"); // open CustomerInfo.txt for appending ID, name, num, and address 
         /*** Used different location from CustomerInfo.txt for testing purposes ***/
-        if (file == NULL) { // in case file is inaccessible
+        /*if (file == NULL) { // in case file is inaccessible
             printf("\nError accessing file CustomerInfo.txt!\n");
             exit(1);
-        }
+        } */
 
         // get name info
         printf("Please Enter First Name: "); 
@@ -228,24 +242,23 @@ void userRegister(int type, int clientSock) {
 
         //send(clientSocket, message, strlen(message), 0); // send message to dataServer
         //receiveValue = read(clientSocket, buffer, 1024);
-        clientSend(clientSock, command);
-        clientReceive(clientSock);
+        //clientSend(&clientSock, message);
+        //clientReceive(&clientSock, message);
+        clientComm(clientSock, command);
         printf("%s\n", buffer);
 
-
-        fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
-        fclose(file); // close the file to save the info 
+        //fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
+        //fclose(file); // close the file to save the info 
 
         buyerMenu(clientSock); // go to buyer menu
     }
     else { // if it's a seller registering
-
-        file = fopen("SellerInfoTest.txt", "a"); // open SellerInfo.txt for appending ID, name, num, and address 
-
+        //file = fopen("SellerInfoTest.txt", "a"); // open SellerInfo.txt for appending ID, name, num, and address 
+        /*
         if (file == NULL) { // in case file is inaccessible
             printf("\nError accessing file SellerInfo.txt!\n");
             exit(1);
-        }
+        } */
 
         // get name info
         printf("Please Enter First Name: "); 
@@ -268,7 +281,7 @@ void userRegister(int type, int clientSock) {
         printf("\nAddress Entered: %s", address); // return address to make sure input is correct
 
         /** TODO: Write info to client server **/
-        fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
+        //fprintf(file, "%s,%s,%s,%s,\n", firstName, lastName, num, address);
 
         sellerMenu(clientSock); // go to seller menu
     }
@@ -366,12 +379,12 @@ void makeOrder(int clientSock) {
     params: none
     returns: void */
 void viewOrder() {
-    sem_wait(&lock); // wait
+    //sem_wait(&lock); // wait
     printf("\nCritical Section Entered...\n"); // just a test
     // critical section will validate ID 
     /*** TODO: lock BillingInfo.txt and load necessary data into buffer for display ***/
     printf("\nExiting Critical Section\n");
-    sem_post(&lock); // signal to exit crit section
+    //sem_post(&lock); // signal to exit crit section
 }
 
 /*  function to let buyer modify order
@@ -591,13 +604,40 @@ void modifyPrice() {
 
 // main function to test functions
 int main() {
-    int clientSock = clientConnect();
-
-    while (1) {
-        //recv(clientSock, 0, sizeof(int), 0);
-        initialMenu(clientSock);
+    // I've basically put the clientConnect() function here to test the issues I've been having
+    char buffer[1024];
+    char message[25];
+    //int clientSock;
+    struct sockaddr_in server, client;
+    // create socket
+    int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket < 0) {
+        printf("\nError creating socket\n");
+        return -1;
     }
 
-    close(clientSock);
-    return 0;
+    memset(&server, 0, sizeof(server)); // clear memory
+
+    // set values for server struct port
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT); 
+    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // establish connection to server
+    int connection = connect(clientSocket, (struct sockaddr *)&server, sizeof(server));
+
+    // ensure the connection is valid
+    if (connection < 0) {
+        printf("\nBinding connection failed! Please make sure server is running\n");
+        exit(0);
+    }
+    
+    printf("\nSuccessfully connected to server!\n");
+    //clientConnect(&server, clientSock);
+
+    // begin the program for client
+    initialMenu(clientSocket);
+
+    // close the socket when finished
+    close(clientSocket);
 }
