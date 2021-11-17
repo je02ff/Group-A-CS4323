@@ -116,7 +116,7 @@ int main(){
   return 0;
 }
 
-//code that has the deadlock(hold and wait i think) 
+//code that has the deadlock(hold and wait i think not sure if its hold and wait for circual wait) 
 //the functions get the locks they need at the time and release all of them at the end
 //this leads to deadlock as the functions get the locks in different orders but to finish need all of them
 
