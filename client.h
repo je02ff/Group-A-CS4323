@@ -14,6 +14,7 @@
 #include <semaphore.h>
 
 #define PORT 8081
+#define BUFFERSIZE 10240
 
 // menu functions
 void initialMenu(int clientSock);
@@ -26,15 +27,15 @@ void IDLogin(int type, int clientSock);
 
 // info handling functions
 void makeOrder(int clientSock);
-void viewOrder();
-void modifyOrder();
-void viewBill();
+void viewOrder(int clientSock);
+void modifyOrder(int clientSock);
+void viewBill(int clientSock);
 void editInfo(int type, int clientSock);
-void completeOrder();
-void viewProducts();
-void addProduct();
-void addNewProduct();
-void sellerMenu();
-void deleteProduct();
-void modifyQuantity();
-void modifyPrice();
+void completeOrder(int clientSock);
+void viewProducts(int clientSock);
+void addProduct(int clientSock);
+void addNewProduct(int clientSock);
+void sellerMenu(int clientSock);
+void deleteProduct(int clientSock);
+void modifyQuantity(int clientSock);
+void modifyPrice(int clientSock);

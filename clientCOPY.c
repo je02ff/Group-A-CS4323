@@ -315,11 +315,11 @@ void buyerMenu(int clientSock) {
             case 1: // make an order
                 makeOrder(clientSock);
             case 2: // view orders
-                viewOrder();
+                viewOrder(clientSock);
             case 3: // modify order
-                modifyOrder();
+                modifyOrder(clientSock);
             case 4: // view billing info
-                viewBill();
+                viewBill(clientSock);
             case 5: // edit info
                 editInfo(type, clientSock);
             case 6: // back to main menu
@@ -352,11 +352,11 @@ void makeOrder(int clientSock) {
         // handle selection
         switch (select) {
             case 1: // view available products
-                viewProducts();
+                viewProducts(clientSock);
             case 2: // add to order
-                addProduct();
+                addProduct(clientSock);
             case 3: // complete order
-                completeOrder();
+                completeOrder(clientSock);
             case 4: // back to buyer menu
                 buyerMenu(clientSock);
             case 5: // exit program
@@ -371,7 +371,7 @@ void makeOrder(int clientSock) {
 /*  funtion to let buyer view orders, behaves similar to a thread and uses semaphores
     params: none
     returns: void */
-void viewOrder() {
+void viewOrder(int clientSock) {
     //sem_wait(&lock); // wait
     printf("\nCritical Section Entered...\n"); // just a test
     // critical section will validate ID
@@ -383,14 +383,14 @@ void viewOrder() {
 /*  function to let buyer modify order
     params: none
     returns: void */
-void modifyOrder() {
+void modifyOrder(int clientSock) {
     /*** TODO: lock BillingInfo.txt and check if the ID is valid ***/
 }
 
 /*  function to let buyer view billing info
     params: none
     returns: void */
-void viewBill() {
+void viewBill(int clientSock) {
     /*** TODO: lock CustomerInfo.txt and load data into buffer ***/
 }
 
@@ -437,14 +437,14 @@ void editInfo(int type, int clientSock) {
 /*  function to let buyer complete their order
     params: none
     returns: void */
-void completeOrder() {
+void completeOrder(int clientSock) {
     /*** TODO: Lock ProductInfo.txt and validate ID and quantity, perform updates ***/
 }
 
 /*  function to let seller view products
     params: none
     returns: void */
-void viewProducts() {
+void viewProducts(int clientSock) {
     /*** TODO: lock ProductInfo.txt, load data into buffer, return to menu ***/
     // data = (ProductID, ProductName, Quantity, Price/Unit)
 }
@@ -452,7 +452,7 @@ void viewProducts() {
 /*  function for seller to add product to list
     params: none
     returns: void */
-void addProduct() {
+void addProduct(int clientSock) {
     // initialize storage values to be read
     char product[100];
     char quantity[10];
@@ -499,17 +499,17 @@ void sellerMenu(int clientSock) {
         // use switch case for handling
         switch (select) {
             case 1: // view offered products
-                viewProducts();
+                viewProducts(clientSock);
             case 2: // add new product
-                addNewProduct();
+                addNewProduct(clientSock);
             case 3: // delete product
-                deleteProduct();
+                deleteProduct(clientSock);
             case 4: // modify quantity
-                modifyQuantity();
+                modifyQuantity(clientSock);
             case 5: //  modify price
-                modifyPrice();
+                modifyPrice(clientSock);
             case 6: // view product orders
-                viewOrder();
+                viewOrder(clientSock);
             case 7: // edit seller info
                 editInfo(type, clientSock);
             case 8: // return to main menu
@@ -526,7 +526,7 @@ void sellerMenu(int clientSock) {
 /*  function for seller to add new product to list
     params: none
     returns: void */
-void addNewProduct() {
+void addNewProduct(int clientSock) {
     // initialize variables
     char name[100];
     char quantity[100];
@@ -550,7 +550,7 @@ void addNewProduct() {
 /*  function to delete product from database
     params: none
     returns: void */
-void deleteProduct() {
+void deleteProduct(int clientSock) {
     char ID;
 
     printf("Enter ProductID to Remove: ");
@@ -562,7 +562,7 @@ void deleteProduct() {
 /*  function to modify the quantity available of an item
     params: none
     returns: void */
-void modifyQuantity() {
+void modifyQuantity(int clientSock) {
     char ID;
     int quantity;
 
@@ -580,7 +580,7 @@ void modifyQuantity() {
 /*  function to modify the price of an item
     params: the item to be selected
     returns: the new price of the item (void) */
-void modifyPrice() {
+void modifyPrice(int clientSock) {
     char ID;
     int price;
 
