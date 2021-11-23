@@ -1,5 +1,4 @@
-/*  
-    Group A
+/*  Group A
     Author: Jeremiah Pete
     Email: jeremiah.pete@okstate.edu
 
@@ -12,12 +11,15 @@
 
 // create global buffer variables
 char buffer[BUFFERSIZE] = {0}; 
-char buyerID, sellerID, productID, orderID, numberID;
+char buyerID = {0}, sellerID, productID, orderID;
 // declare variables to store info needed for registering users
 char firstName[50] = {0};
 char lastName[50] = {0};
 char num[50] = {0};
 char address[100] = {0};
+char city[50] = {0};
+char state[50] = {0};
+char zipCode[10] = {0};
 char quantity[100] = {0};
 char price[100] = {0};
 
@@ -46,6 +48,7 @@ void clientReceive(int *socketVal, char *buff) {
     returns: void */
 void initialMenu(int clientSock) {
     int selection;
+    memset(buffer, 0, BUFFERSIZE);
 
     printf("\nPlease select an option below - \n\n");
     // display options to user
@@ -80,7 +83,6 @@ void buyerLogin(int clientSock) {
     int select;
     int type = 0; // for register option
 
-    //system("clear"); // clear the screen for better tracking 
     printf("\n\nBuyer Login:\n\nPlease select an option -\n\n");
     
     // display options to user
@@ -96,12 +98,10 @@ void buyerLogin(int clientSock) {
         // use switch case to make decision
         switch (select) {
             case 1: // new customer registration
-                //system("clear");
                 userRegister(type, clientSock);
             case 2: // login with customer ID
                 IDLogin(type, clientSock);
-            case 3: // go back to main menu
-                //system("clear");
+            case 3: // go back to main menu   
                 initialMenu(clientSock);
             case 4:
                 exit(0);
@@ -118,7 +118,6 @@ void sellerLogin(int clientSock) {
     int select;
     int type = 1; // for register option
 
-    //system("clear");
     printf("\n\nSeller Login:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -134,12 +133,10 @@ void sellerLogin(int clientSock) {
         // use switch case to make decision
         switch (select) {
             case 1: // new seller registration
-                //system("clear");
                 userRegister(type, clientSock);
             case 2: // login with sellerID
                 IDLogin(type, clientSock);
             case 3: // go back to the initial menu
-                //system("clear");
                 initialMenu(clientSock);
             case 4: // exit program
                 exit(0);
@@ -169,10 +166,22 @@ void userRegister(int type, int clientSock) {
         printf("\nNumber Entered: %s", num); // return number to make sure input is correct
 
         // get address info
-        printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):");
-        printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
+        printf("\n\nPlease Enter Street Address: ");
         scanf(" %[^\n]", address);
-        printf("\nAddress Entered: %s\n", address); // return address to make sure input is correct
+        
+        // get city
+        printf("\nPlease Enter City: ");
+        scanf(" %[^\n]", city);
+
+        // get state
+        printf("\nPlease Enter State: ");
+        scanf(" %[^\n]", state);
+
+        // get zipcode
+        printf("\nPlease Enter Zip Code: ");
+        scanf(" %[^\n]", zipCode);
+
+        printf("\n\nAddress Entered: %s,%s,%s,%s\n", address, city, state, zipCode);
 
         /** Write info to client server **/
         strcat(buffer, "[NEW_CLIENT],[BUYER],");
@@ -184,24 +193,31 @@ void userRegister(int type, int clientSock) {
         strcat(buffer, ",");
         strcat(buffer, address);
         strcat(buffer, ",");
+        strcat(buffer, city);
+        strcat(buffer, ",");
+        strcat(buffer, state);
+        strcat(buffer, ",");
+        strcat(buffer, zipCode);
+        strcat(buffer, ",");
         
         clientSend(&clientSock, buffer);
         memset(buffer, 0, BUFFERSIZE); // clear buffer
         clientReceive(&clientSock, buffer);
 
         printf("\nServer Message: %s\n", buffer);
+        buyerID = *buffer; // buffer should return newClientID 
         
         buyerMenu(clientSock); // go to buyer menu
     }
     else { // if it's a seller registering
         // get name info
-        printf("Please Enter First Name: "); 
+        printf("Please Enter First Name: ");
         scanf(" %[^\n]", firstName);
 
         printf("\nPlease Enter Last Name: ");
         scanf(" %[^\n]", lastName);
 
-        printf("\nHello, %s %s!", firstName, lastName); // return full name
+        printf("\nHello, %s %s!", firstName, lastName); // return full name to make sure input is correct
 
         // get number info
         printf("\n\nPlease Enter Contact Number: ");
@@ -209,13 +225,25 @@ void userRegister(int type, int clientSock) {
         printf("\nNumber Entered: %s", num); // return number to make sure input is correct
 
         // get address info
-        printf("\n\nPlease Enter Address (Format: Street Name,City,State,Zip Code ***no spaces between commas):"); 
-        printf("\nExample: 1234 Street St.,Edmond,OK,73003\n\nAddress: ");
+        printf("\n\nPlease Enter Street Address: ");
         scanf(" %[^\n]", address);
-        printf("\nAddress Entered: %s", address); // return address to make sure input is correct
+        
+        // get city
+        printf("\nPlease Enter City: ");
+        scanf(" %[^\n]", city);
+
+        // get state
+        printf("\nPlease Enter State: ");
+        scanf(" %[^\n]", state);
+
+        // get zipcode
+        printf("\nPlease Enter Zip Code: ");
+        scanf(" %[^\n]", zipCode);
+
+        printf("\n\nAddress Entered: %s,%s,%s,%s\n", address, city, state, zipCode);
 
         /** Write info to client server **/
-        strcat(buffer, "[NEW_CLIENT],[SELLER],");
+        strcat(buffer, "[NEW_CLIENT],[BUYER],");
         strcat(buffer, firstName);
         strcat(buffer, ",");
         strcat(buffer, lastName);
@@ -224,12 +252,19 @@ void userRegister(int type, int clientSock) {
         strcat(buffer, ",");
         strcat(buffer, address);
         strcat(buffer, ",");
+        strcat(buffer, city);
+        strcat(buffer, ",");
+        strcat(buffer, state);
+        strcat(buffer, ",");
+        strcat(buffer, zipCode);
+        strcat(buffer, ",");
         
         clientSend(&clientSock, buffer);
         memset(buffer, 0, BUFFERSIZE); // clear buffer
         clientReceive(&clientSock, buffer);
 
         printf("\nServer Message: %s\n", buffer);
+        sellerID = *buffer; // buffer should return newClientID 
 
         sellerMenu(clientSock); // go to seller menu
     }
@@ -241,7 +276,7 @@ void userRegister(int type, int clientSock) {
 void IDLogin(int type, int clientSock) {
     char ID[50] = {0}; // to retrieve ID input
 
-    memset(buffer, 0, BUFFERSIZE);
+    //memset(buffer, 0, BUFFERSIZE);
     printf("Please Enter ID to Login: ");
     scanf(" %[^\n]", ID); // retrieve ID value
 
@@ -251,24 +286,36 @@ void IDLogin(int type, int clientSock) {
         strcat(buffer, ID);
         strcat(buffer,",[BUYER],");
 
-        memset(buffer, 0, BUFFERSIZE); // clear any potential leftover memory in buffer
         clientSend(&clientSock, buffer); // send message to server
         memset(buffer, 0, BUFFERSIZE);
         clientReceive(&clientSock, buffer); // receive message from server
 
-        printf("\nServer Message: %s\n", buffer); // display message to client
+        printf("\nServer Message: %s\n\n", buffer); // [CONFIRMATION] OR [INVALID]
+        
+        // determine actions if login is successful or not
+        if (buffer == "[CONFIRMATION]") {
+            buyerMenu(clientSock);
+        }
+        else {
+            initialMenu(clientSock); // return to the initial menu if login unsuccessful
+        }
     }
     else { // if it's a seller logging in 
         strcat(buffer, "[VALIDATE_ID],");
         strcat(buffer, ID);
         strcat(buffer,",[SELLER],");
 
-        memset(buffer, 0, BUFFERSIZE); // clear any potential leftover memory in buffer
         clientSend(&clientSock, buffer); // send message to server
         memset(buffer, 0, BUFFERSIZE);
         clientReceive(&clientSock, buffer); // receive message from server
 
-        printf("\nServer Message: %s\n", buffer); // display message to client
+        printf("\nServer Message: %s\n", buffer); // [CONFIRMATION] OR [INVALID]
+
+        // determine actions if login is successful or not
+        if (buffer == "[CONFIRMATION]")
+            sellerMenu(clientSock);
+        else 
+            initialMenu(clientSock); // return to the initial menu if login unsuccessful
     }
 }
 
@@ -279,7 +326,7 @@ void buyerMenu(int clientSock) {
     int select;
     int type = 0; // to distinguish from seller
 
-    //system("clear");
+     
     printf("\n\nBuyer Menu:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -324,7 +371,6 @@ void sellerMenu(int clientSock) {
     int select;
     int type = 1; // to distinguish from buyer
 
-    //system("clear");
     printf("\n\nSeller Menu:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -419,16 +465,49 @@ void viewOrder(int clientSock) {
     memset(buffer, 0, BUFFERSIZE); // clear buffer
     clientReceive(&clientSock, buffer);
 
-    printf("\nServer Message: %s\n", buffer);
+    printf("\nServer Message: %s\n", buffer); // SENDS LIST OF: ProductIDs,Product Names,Quantity,PricePerUnit
 }
 
 /*  function to let buyer modify order
     params: int clientSock
     returns: void */
 void modifyOrder(int clientSock) {
-    // first check if the ID is valid or not
+    // retreive the orderID and productID
+    printf("\nPlease Enter Order ID: ");
+    scanf(" %[^\n]", &orderID);
+
+    printf("\nPlease Enter Product ID: ");
+    scanf(" %[^\n]", &productID);
+
     memset(buffer, 0, BUFFERSIZE);
 
+    // first check if the orderID is valid
+    strcat(buffer, "[VALIDATE_ID],");
+    strcat(buffer, &orderID);
+    strcat(buffer, ",[BILLING],");
+
+    /** Write info to server **/
+    clientSend(&clientSock, buffer);
+    memset(buffer, 0, BUFFERSIZE); // clear buffer
+    clientReceive(&clientSock, buffer);
+
+    printf("\nServer Message (ORDER ID): %s\n", buffer);
+
+    // check if the productID is valid
+    memset(buffer, 0, BUFFERSIZE); // clear buffer
+    strcat(buffer, "[VALIDATE_ID],");
+    strcat(buffer, &productID);
+    strcat(buffer, ",[ORDER],");
+
+    /** Write info to server **/
+    clientSend(&clientSock, buffer);
+    memset(buffer, 0, BUFFERSIZE); // clear buffer
+    clientReceive(&clientSock, buffer);
+
+    printf("\nServer Message (PRODUCT ID): %s\n", buffer);
+
+    // check if buyerID is valid
+    memset(buffer, 0, BUFFERSIZE); // clear buffer
     strcat(buffer, "[CHECK_BUYER],");
     strcat(buffer, &buyerID);
     strcat(buffer, ",");
@@ -447,7 +526,7 @@ void modifyOrder(int clientSock) {
         memset(buffer, 0, BUFFERSIZE);
 
         strcat(buffer, "[ORDER_DETAILS],");
-        strcat(buffer, &numberID);
+        strcat(buffer, &productID);
         strcat(buffer, ",");
 
         /** Write info to server **/
@@ -678,6 +757,10 @@ void addNewProduct(int clientSock) {
     // get product name
     printf("Enter Product Name: ");
     scanf(" %[^\n]", product);
+
+    // get product ID
+    printf("Enter Product ID: ");
+    scanf(" %[^\n]", &productID);
 
     // get quantity amount
     printf("Enter Quantity: ");
