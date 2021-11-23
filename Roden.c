@@ -1552,7 +1552,7 @@ void executeTaskOnServer(int clientSock) {
         /*10. SellerOption 3 Delete Product TCP COMMAND: [DELETE_PROD]*/
         //REQUIRED Buff string: "[DELETE_PROD],sellerID,productID,"
 
-        deleteProduct(buffer, &clientSock, deletedProducts);
+        deleteProduct(buffer, &clientSock);
         bzero(buffer, MSG_BUFFER_SIZE);
         bzero(command, 25);
 
