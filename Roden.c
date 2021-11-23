@@ -22,7 +22,7 @@
 #include "Roden.h"
 #include "tcpStuff.h"
 #include "readDatabaseIntoArray.h"
-#include "queue.h"
+#include "JacobWilson.h"
 
 int deletedProducts[maxRowsInDB] = {0};
 
@@ -86,8 +86,6 @@ void writeSocket(const int* sock, char* buffer) {
     }
 
 }
-
-
 
 /*---Database Table Loaders---*/
 
@@ -345,16 +343,6 @@ void writeNewClientData(char *buffer, int* clientSock) {
     ptr = strtok(NULL, ",");
     sprintf(zipCode, "%s", ptr);
 
-
-    /*IF new Buyer
-    WRITE CustomerInformation.txt
-    NEW CustomerID, FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode
-    SEND Confirmation*/
-    /*
-    IF new Seller
-    WRITE SellerInformation.txt
-    NEW SellerID, FirstName, LastName, phoneNumber, streetAddress, City, State, zipcode
-    SEND Confirmation*/
     if (strstr(clientType, "[BUYER]") != NULL) {
         int lastOccupiedRow = 0;
 
@@ -374,7 +362,7 @@ void writeNewClientData(char *buffer, int* clientSock) {
         sprintf(stringID, "%d", uuid);
         writeSocket(clientSock,stringID);
 
-        //TODO: now write clientDB array back to its appropriate source.
+        writeBackClientStruct("CustomerInfo.txt", clientDB);
     } else {
         int lastOccupiedRow = 0;
 
@@ -396,10 +384,8 @@ void writeNewClientData(char *buffer, int* clientSock) {
         sprintf(stringID, "%d", uuid);
         writeSocket(clientSock,stringID);
 
-        //TODO: now write clientDB array back to its appropriate source.
+        writeBackClientStruct("SellerInfo.txt", clientDB);
     }
-
-
 }
 
 void viewProducts(char *buffer, int* clientSock) {
@@ -536,7 +522,7 @@ void writeNewProductQuantityFromOrder(struct itemOrder *orderList, struct csvPro
         rowCounter = 0;
     }
 
-    //TODO write pList to ProductInfo.txt
+    writeBackProductStruct(pList);
 }
 
 int writeOrderToBillingInfo(struct csvClientInfo buyerData, struct itemOrder *orderList, struct csvBillingInfo *billingList) {
@@ -565,8 +551,7 @@ int writeOrderToBillingInfo(struct csvClientInfo buyerData, struct itemOrder *or
     strcpy(billingList[rowToWriteRecord].zipCode, buyerData.zipCode);
     billingList[rowToWriteRecord].totalOrderCost = totalOrderCost;
 
-    //write table to text file
-    //TODO pass billingList to function that writes it to BillingInfo.txt
+    writeBackBillingStruct(billingList);
 
     return billingList[rowToWriteRecord].orderId;
 }
@@ -595,7 +580,8 @@ void writeOrderToCustomerOrder(int orderID, struct csvClientInfo buyerData, stru
         lastRecordRow++;
     }
 
-    //TODO: write customerOrders to text file
+    //write customerOrders to text file
+    writeBackCustomerOrderStruct(customerOrders);
 
 }
 
@@ -743,12 +729,13 @@ void addNewProduct(char *buffer, int* clientSock) {
     ptr = strtok(NULL, ",");
     pList[newRecordRow].price = atoi(ptr);
 
-    //TODO write plist to text file
+    //write plist to text file
+    writeBackProductStruct(pList);
 
     writeSocket(clientSock, "[CONFIRMATION]");
 }
 
-void deleteProduct(char *buffer, int* clientSock, int *deletedProducts) {
+void deleteProduct(char *buffer, int* clientSock) {
     //REQUIRED Buff string: "sellerID,productID,"
 
     struct csvProductInfo pList[maxRowsInDB];
@@ -803,7 +790,8 @@ void deleteProduct(char *buffer, int* clientSock, int *deletedProducts) {
                 rowCountTrailing++;
             }
         }
-        //TODO write modifiedProductList to ProductInfo.txt
+        //write modifiedProductList to ProductInfo.txt
+        writeBackProductStruct(modifiedProductList);
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -850,7 +838,8 @@ void modifyQuantity(char *buffer, int* clientSock) {
             //modify the quantity
             pList[productRowNum].quantity = quantity;
         }
-        //TODO write plist to ProductInfo.txt
+        //write plist to ProductInfo.txt
+        writeBackProductStruct(pList);
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -897,7 +886,8 @@ void modifyPrice(char *buffer, int* clientSock) {
             //modify the quantity
             pList[productRowNum].price = priceToSet;
         }
-        //TODO write plist to ProductInfo.txt
+        //write plist to ProductInfo.txt
+        writeBackProductStruct(pList);
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -1040,7 +1030,8 @@ void sellerEditsName(char* buffer, int id) {
     bzero(sellerList[sellerRowInDB].lastName, 20);
     strcpy(sellerList[sellerRowInDB].lastName, ptr);
 
-    //TODO writeback sellerList to SellerInfo.txt
+    //writeback sellerList to SellerInfo.txt
+    writeBackClientStruct("SellerInfo.txt", sellerList);
 }
 
 void sellerEditsNumber(char* buffer, int id) {
@@ -1057,7 +1048,8 @@ void sellerEditsNumber(char* buffer, int id) {
     bzero(sellerList[sellerRowInDB].phoneNumber,20);
     strcpy(sellerList[sellerRowInDB].phoneNumber, ptr);
 
-    //TODO writeback sellerList to SellerInfo.txt
+    //writeback sellerList to SellerInfo.txt
+    writeBackClientStruct("SellerInfo.txt", sellerList);
 }
 
 void sellerEditsAddress(char* buffer, int id) {
@@ -1086,7 +1078,8 @@ void sellerEditsAddress(char* buffer, int id) {
     bzero(sellerList[sellerRowInDB].zipCode,20);
     strcpy(sellerList[sellerRowInDB].zipCode, ptr);
 
-    //TODO writeback sellerList to SellerInfo.txt
+    //writeback sellerList to SellerInfo.txt
+    writeBackClientStruct("SellerInfo.txt", sellerList);
 }
 
 void buyerEditsNumber(char* buffer, int id) {
@@ -1103,7 +1096,8 @@ void buyerEditsNumber(char* buffer, int id) {
     bzero(buyerList[buyerRowInDB].phoneNumber,20);
     strcpy(buyerList[buyerRowInDB].phoneNumber, ptr);
 
-    //TODO writeback buyerList to CustomerInfo.txt
+    //writeback buyerList to CustomerInfo.txt
+    writeBackClientStruct("CustomerInfo.txt", buyerList);
 }
 
 void buyerEditsName(char* buffer, int id) {
@@ -1134,7 +1128,8 @@ void buyerEditsName(char* buffer, int id) {
     bzero(buyerList[buyerRowInDB].lastName, 20);
     strcpy(buyerList[buyerRowInDB].lastName, lastName);
 
-    //TODO write back buyerList to CustomerInfo.txt
+    //write back buyerList to CustomerInfo.txt
+    writeBackClientStruct("CustomerInfo.txt", buyerList);
 
     //edit name in BillingInfo.txt
     loadBillingInfo(billingInfo);
@@ -1152,7 +1147,8 @@ void buyerEditsName(char* buffer, int id) {
         }
         rowCount++;
     }
-    //TODO write back billingInfo to BillingInfo.txt
+    //write back billingInfo to BillingInfo.txt
+    writeBackBillingStruct(billingInfo);
 
     //edit name in CustomerOrder.txt
     loadCustomerOrderInfo(customerOrderInfo);
@@ -1169,7 +1165,8 @@ void buyerEditsName(char* buffer, int id) {
             rowCount++;
         }
     }
-    //TODO write back customerOrderInfo to CustomerOrderInfo.txt
+    //write back customerOrderInfo to CustomerOrderInfo.txt
+    writeBackCustomerOrderStruct(customerOrderInfo);
 }
 
 void buyerEditsAddress(char* buffer, int id) {
@@ -1212,7 +1209,8 @@ void buyerEditsAddress(char* buffer, int id) {
     bzero(buyerList[buyerRowInDB].zipCode, 20);
     strcpy(buyerList[buyerRowInDB].zipCode, zipCode);
 
-    //TODO write back sellerList to SellerInfo.txt
+    //write back buyerList to CustomerInfo.txt
+    writeBackClientStruct("CustomerInfo.txt", buyerList);
 
     //edit name in BillingInfo.txt
     loadBillingInfo(billingInfo);
@@ -1236,7 +1234,8 @@ void buyerEditsAddress(char* buffer, int id) {
         }
         rowCount++;
     }
-    //TODO write back billingInfo to BillingInfo.txt
+    //write back billingInfo to BillingInfo.txt
+    writeBackBillingStruct(billingInfo);
 
     //edit name in CustomerOrder.txt
     loadCustomerOrderInfo(customerOrderInfo);
@@ -1259,7 +1258,8 @@ void buyerEditsAddress(char* buffer, int id) {
             rowCount++;
         }
     }
-    //TODO write back customerOrderInfo to CustomerOrderInfo.txt
+    //write back customerOrderInfo to CustomerOrderInfo.txt
+    writeBackCustomerOrderStruct(customerOrderInfo);
 }
 
 void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TEST
@@ -1303,7 +1303,8 @@ void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TE
         rowCountTrailing++;
     }
 
-    //TODO write modifiedCustomerOrderInfo to CustomerOrderInfo.txt
+    //write modifiedCustomerOrderInfo to CustomerOrderInfo.txt
+    writeBackCustomerOrderStruct(modifiedCustomerOrderInfo);
 
     //find the order in BillingInfo and deduct deleted product price from the total order price
     rowCount = 0;
@@ -1311,9 +1312,11 @@ void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TE
         rowCount++;
     }
     billingInfo[rowCount].totalOrderCost -= itemCost;
+
+    //write billingInfo to BillingInfo.txt
+    writeBackBillingStruct(billingInfo);
 }
 
-    //TODO write billingInfo to BillingInfo.txt
 
 void readOrderDetails(char *buffer, int* clientSock) {
     struct itemOrder itemsInOrder[200];
