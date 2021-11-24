@@ -68,7 +68,19 @@ int writeBackProductStruct(struct csvProductInfo table[]){
 //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
-   for(int x = 0; x < 8; x++){
+     int num = 0;
+   char tempChar;
+   FILE* fl2 = fopen("ProductInfo.txt","r");
+   tempChar = fgetc(fl2);
+   //this will make the assumption that there is at least one row in the table
+   while(tempChar != EOF){
+      if(tempChar == '\n'){
+      num++;
+      }
+   }
+   //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   num++;
+   for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
 	intToCharArray(table[x].productId,result);
@@ -92,7 +104,7 @@ int writeBackProductStruct(struct csvProductInfo table[]){
 	intToCharArray(table[x].price,result);
 	strcat(putBack, result);
 	memset(result, 0, strlen(result));
-        if(x !=7){
+        if(x !=num){
 	   strcat(putBack, ",\n");
         }
    }
@@ -107,7 +119,19 @@ int writeBackBillingStruct(struct csvBillingInfo table[]){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
-   for(int x = 0; x < 4; x++){
+     int num = 0;
+   char tempChar;
+   FILE* fl2 = fopen("BillingInfo.txt","r");
+   tempChar = fgetc(fl2);
+   //this will make the assumption that there is at least one row in the table
+   while(tempChar != EOF){
+      if(tempChar == '\n'){
+      num++;
+      }
+   }
+   //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   num++;
+   for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
 	intToCharArray(table[x].orderId,result);
@@ -143,7 +167,7 @@ int writeBackBillingStruct(struct csvBillingInfo table[]){
 	memset(result, 0, strlen(result));
 	strcat(putBack, ",");
 
-	if(x !=4){
+	if(x !=num){
 	   strcat(putBack, "\n");
 	}
    }
@@ -158,7 +182,19 @@ int writeBackClientStruct(char* db, struct csvClientInfo table[]){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
-   for(int x = 0; x < 4; x++){
+    int num = 0;
+   char tempChar;
+   FILE* fl2 = fopen(db,"r");
+   tempChar = fgetc(fl2);
+   //this will make the assumption that there is at least one row in the table
+   while(tempChar != EOF){
+      if(tempChar == '\n'){
+      num++;
+      }
+   }
+   //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   num++;
+   for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
 	intToCharArray(table[x].uuid,result);
@@ -187,7 +223,7 @@ int writeBackClientStruct(char* db, struct csvClientInfo table[]){
 	strcat(putBack, table[x].zipCode);
 	strcat(putBack, ",");
 
-	if(x !=4){
+	if(x !=num){
 	   strcat(putBack, "\n");
 	}
    }
@@ -202,7 +238,19 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
-   for(int x = 0; x < 7; x++){
+   int num = 0;
+   char tempChar;
+   FILE* fl2 = fopen("CustomerOrder.txt","r");
+   tempChar = fgetc(fl2);
+   //this will make the assumption that there is at least one row in the table
+   while(tempChar != EOF){
+      if(tempChar == '\n'){
+      num++;
+      }
+   }
+   //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   num++;
+   for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
 	intToCharArray(table[x].orderId,result);
@@ -243,7 +291,7 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
 	memset(result, 0, strlen(result));
 	strcat(putBack, ",");
 
-	if(x !=7){
+	if(x !=num){
 	   strcat(putBack, "\n");
 	}
    }
@@ -253,3 +301,4 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
    fclose(fl1);
    return 0;
 }
+
