@@ -78,6 +78,7 @@ int writeBackProductStruct(struct csvProductInfo table[]){
       num++;
       }
    }
+   flcose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
    for(int x = 0; x < num; x++){
@@ -129,6 +130,7 @@ int writeBackBillingStruct(struct csvBillingInfo table[]){
       num++;
       }
    }
+	flcose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
    for(int x = 0; x < num; x++){
@@ -192,6 +194,7 @@ int writeBackClientStruct(char* db, struct csvClientInfo table[]){
       num++;
       }
    }
+	flcose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
    for(int x = 0; x < num; x++){
@@ -248,6 +251,8 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
       num++;
       }
    }
+	num++;
+	flcose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
    for(int x = 0; x < num; x++){
