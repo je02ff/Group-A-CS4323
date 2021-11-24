@@ -1,3 +1,6 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+
 #include <stdio.h>
 #include <strings.h>
 #include <string.h>
@@ -9,12 +12,26 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
+
+/*----"Databases"----*/
 char BillingInfo[30] = "Billing\n";
 char CustomerInfo[30] = "Buyer\n";
 char SellerInfo[30] = "Seller\n";
 char CustomerOrderInfo[30] = "Orders\n";
 char ProductInfo[30] = "Products\n";
 int globalArray = 1;
+
+/*----Semaphores----*/
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
+sem_t *wrtProductInfo;
 
 struct command {
     char command[20];
@@ -258,4 +275,5 @@ int main() {
     while(1){};
     return 0;
 }
+#pragma clang diagnostic pop
 #pragma clang diagnostic pop
