@@ -251,7 +251,6 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
       num++;
       }
    }
-	num++;
 	flcose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
