@@ -14,8 +14,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <assert.h>
-#include <semaphore.h>
-#include "readDatabaseIntoArray.h"
 #include "Roden.h"
 #include <mqueue.h>
 #include <sys/types.h>
