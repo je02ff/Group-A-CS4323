@@ -1,118 +1,127 @@
+Resource Lock Order
+
+CustomerInfo - 1
+SellerInfo - 2
+ProductInfo - 3
+BillingInfo - 4
+CustomerOrder - 5
+deletedProductArray - 6
+
 1.[NEW_CLIENT]
 	if buyer
 		READ CustomerInfo.txt
-		WRITE CustomerInfo.txt
+		WRITE CustomerInfo.txt - 1
 	else
 		READ SellerInfo.txt
-		WRITE SellerInfo.txt
+		WRITE SellerInfo.txt - 2
 
 2.[VALIDATE_ID]
 	if buyer
-		READ CustomerInfo.txt
+		READ CustomerInfo.txt - 1
 	else if seller
-		READ SellerInfo.txt
+		READ SellerInfo.txt - 2
 	else if product
-		READ ProductInfo.txt
+		READ ProductInfo.txt - 3
 	else if billing
-		READ BillingInfo.txt
+		READ BillingInfo.txt - 4
 	else if order
-		READ CustomerOrderInfo.txt
+		READ CustomerOrderInfo.txt - 5
 
 4.[VIEW_PRODUCTS]
 	if buyer
-		READ ProductInfo.txt
+		READ ProductInfo.txt - 3
 	else
-		READ ProductInfo.txt
+		READ ProductInfo.txt - 3
 
 5.[COMPLETE_ORDER]
-	READ ProductInfo.txt
+	READ ProductInfo.txt - 3
 	if validOrder
 		READ CustomerInfo.txt
 		READ BillingInfo.txt
 		READ CustomerOrderInfo.txt
-		WRITE ProductInfo.txt
-		WRITE BillingInfo.txt
-		WRITE CustomerOrderInfo.txt
+		WRITE ProductInfo.txt - 3
+		WRITE BillingInfo.txt - 4
+		WRITE CustomerOrderInfo.txt - 5
 
 6.[VIEW_BUYER_ORDERS]
-	READ BillingInfo.txt
+	READ BillingInfo.txt - 4
 
 7.[CHECK_BUYER]
-	READ BillingInfo.txt
+	READ BillingInfo.txt - 4
 
 8.[ORDER_DETAILS]
-	READ CustomerOrderInfo.txt
-	READ ProductInfo.txt
+	READ CustomerOrderInfo.txt - 5
+	READ ProductInfo.txt - 3
 
 9.[MOD_ORDER]
 	READ CustomerOrderInfo.txt
 	READ BillingInfo.txt
-	WRITE CustomerOrderInfo.txt
-	WRITE BillingInfo.txt
+	WRITE CustomerOrderInfo.txt - 5
+	WRITE BillingInfo.txt - 4
 
 10.[VIEW_BILLING]
-	READ CustomerInfo.txt
+	READ CustomerInfo.txt - 1
 
 11.[EDIT_INFO]
 	if buyer
 		if name
 			READ CustomerInfo.txt
-			WRITE CustomerInfo.txt
+			WRITE CustomerInfo.txt - 1
 			READ BillingInfo.txt
-			WRITE BillingInfo.txt
+			WRITE BillingInfo.txt - 4
 			READ CustomerOrderInfo.txt
-			WRITE CustomerOrderInfo.txt
+			WRITE CustomerOrderInfo.txt - 5
 		else if number
 			READ CustomerInfo.txt
-			WRITE CustomerInfo.txt
+			WRITE CustomerInfo.txt - 1
 		else if address
 			READ CustomerInfo.txt
-			WRITE CustomerInfo.txt
+			WRITE CustomerInfo.txt - 1
 			READ BillingInfo.txt
-			WRITE BillingInfo.txt
+			WRITE BillingInfo.txt - 4
 			READ CustomerOrderInfo.txt
-			WRITE CustomerOrderInfo.txt
+			WRITE CustomerOrderInfo.txt - 5
 	else
 		if name
 			READ SellerInfo.txt
-			WRITE SellerInfo.txt
+			WRITE SellerInfo.txt - 2
 		else if number
 			READ SellerInfo.txt
-			WRITE SellerInfo.txt
+			WRITE SellerInfo.txt - 2
 		else if address
 			READ SellerInfo.txt
-			WRITE SellerInfo.txt
+			WRITE SellerInfo.txt - 2
 
 12.[NEW_PRODUCT]
 	READ ProductInfo.txt
-	WRITE ProductInfo.txt
+	WRITE ProductInfo.txt - 3
 
 13.[DELETE_PROD]
-	if (validate productID (READ ProductInfo.txt))
-		READ ProductInfo.txt
+	if (validate productID (READ ProductInfo.txt)) - 3
+		READ ProductInfo.txt - 3
 		if (seller owns the product)
 		    READ deletedProduct global array var
-		    WRITE deletedProduct global array var
-			WRITE ProductInfo.txt
+		    WRITE deletedProduct global array var - 6
+			WRITE ProductInfo.txt - 3
 	else
 		–
 
 14.[MOD_QUANT]
-	if (validate productID (READ ProductInfo.txt))
+	if (validate productID (READ ProductInfo.txt)) - 3
 		READ ProductInfo.txt
 		if (seller owns the product)
-			WRITE ProductInfo.txt
+			WRITE ProductInfo.txt - 3
 	else
 		–
 
 15.[MOD_PRICE]
-	if (validate productID (READ ProductInfo.txt))
+	if (validate productID (READ ProductInfo.txt)) - 3
 		READ ProductInfo.txt
 		if (seller owns the product)
-			WRITE ProductInfo.txt
+			WRITE ProductInfo.txt - 3
 	else
 		–
 
 16.[SELLER_ORDERS]
-	READ ProductInfo.txt
-	READ CustomerOrderInfo.txt
+	READ ProductInfo.txt - 3
+	READ CustomerOrderInfo.txt - 5
