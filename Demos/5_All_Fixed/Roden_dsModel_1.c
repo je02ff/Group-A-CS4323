@@ -23,10 +23,11 @@ int globalArray = 1;
 
 /*----Semaphores----*/
 sem_t *wrtProductInfo;
-sem_t *wrtProductInfo;
-sem_t *wrtProductInfo;
-sem_t *wrtProductInfo;
-sem_t *wrtProductInfo;
+sem_t *wrtBillingInfo;
+sem_t *wrtCustomerInfo;
+sem_t *wrtCustomerOrder;
+sem_t *wrtSellerInfo;
+
 sem_t *wrtProductInfo;
 sem_t *wrtProductInfo;
 sem_t *wrtProductInfo;
