@@ -57,7 +57,7 @@ void* menu(void* command);
 
 int main() {
     /*----Initialize Semaphores----*/
-   /* sem_unlink(SEM_WRT_PRODUCT);
+    sem_unlink(SEM_WRT_PRODUCT);
     sem_unlink(SEM_WRT_BILLING);
     sem_unlink(SEM_WRT_SELLER);
     sem_unlink(SEM_WRT_BUYER);
@@ -68,7 +68,6 @@ int main() {
     sem_unlink(SEM_READ_BUYER);
     sem_unlink(SEM_WRT_ORDER);
     sem_unlink(SEM_COUNTER_BUYER);
-*/
     sem_t *wrtProductInfo = sem_open(SEM_WRT_PRODUCT, O_CREAT, 0660, 1);
     sem_t *wrtBillingInfo = sem_open(SEM_WRT_BILLING, O_CREAT, 0660, 1);
     sem_t *wrtCustomerInfo = sem_open(SEM_WRT_BUYER, O_CREAT, 0660, 1);
@@ -82,13 +81,14 @@ int main() {
     sem_t *SellerInfoMutex = sem_open(SEM_READ_SELLER, O_CREAT, 0660, 1);
 
     sem_t *CustomerInfoCounter = sem_open(SEM_COUNTER_BUYER, O_CREAT, 0660, 0);
+    int* buyerReaderCounter;
 
     //Setup com for desired Action
     struct command com;
     bzero(com.command,20);
-    strcpy(com.command, "[VIEW_BILLING]");
-    //bzero(com.clientType,20);
-    //strcpy(com.clientType, "[BUYER]");
+    strcpy(com.command, "[NEW_CLIENT]");
+    bzero(com.clientType,20);
+    strcpy(com.clientType, "[BUYER]");
 
 
     char temp[30] = {0};
@@ -163,7 +163,8 @@ int main() {
             sem_wait(CustomerInfoMutex);
             printf("Reader has lock\n");
             sem_post(CustomerInfoCounter);
-            if(sem_getvalue(CustomerInfoCounter) == 1) {
+            sem_getvalue(CustomerInfoCounter, buyerReaderCounter);
+            if(*buyerReaderCounter == 1) {
                 sem_wait(wrtCustomerInfo);
             }
             sem_post(CustomerInfoMutex);
@@ -171,7 +172,8 @@ int main() {
             readBuyerInfo();
             sem_wait(CustomerInfoMutex);
             sem_trywait(CustomerInfoCounter);
-            if(sem_getvalue(CustomerInfoCounter)== 0 ) {
+            sem_getvalue(CustomerInfoCounter, buyerReaderCounter);
+            if(*buyerReaderCounter== 0 ) {
                 sem_post(wrtCustomerInfo);
             }
             sem_post(CustomerInfoMutex);
@@ -257,28 +259,40 @@ int main() {
 void writeProductInfo () {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
-    strcat(temp,"ProductInfo\n");
-   // strcpy(ProductInfo, temp);
+    FILE*  fl1 = fopen("./txt/ProductInfo.txt","w");
+    fprintf(fl1, "%s", temp);
+    fclose(fl1);
+    printf("%s\n",temp);
+    sleep(1);
 }
 void writeSellerInfo () {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
-    strcat(temp,"Seller\n");
-    //strcpy(SellerInfo, temp);
+    FILE*  fl1 = fopen("./txt/SellerInfo.txt","w");
+    fprintf(fl1, "%s", temp);
+    fclose(fl1);
+    printf("%s\n",temp);
+    sleep(1);
 }
 
 void writeBillingInfo () {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
-    strcat(temp,"BillingInfo\n");
-    //strcpy(BillingInfo, temp);
+    FILE*  fl1 = fopen("./txt/BillingInfo.txt","w");
+    fprintf(fl1, "%s", temp);
+    fclose(fl1);
+    printf("%s\n",temp);
+    sleep(1);
 }
 
 void writeCustomerOrderInfo() {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
-    strcat(temp,"CustomerOrder\n");
-    //strcpy(CustomerOrderInfo, temp);
+    FILE*  fl1 = fopen("./txt/CustomerOrder.txt","w");
+    fprintf(fl1, "%s", temp);
+    fclose(fl1);
+    printf("%s\n",temp);
+    sleep(1);
 }
 
 void writeBuyerInfo() {
@@ -292,19 +306,39 @@ void writeBuyerInfo() {
 }
 
 void readProductInfo () {
-    //printf("%s",ProductInfo);
+    int x;
+    FILE* fl1 = fopen("./txt/ProductInfo.txt","r");
+    fscanf(fl1, "%d", &x);
+    fclose(fl1);
+    printf("%d\n", x);
+    sleep(1);
 }
 
 void readSellerInfo () {
-    //printf("%s",SellerInfo);
+    int x;
+    FILE* fl1 = fopen("./txt/SellerInfo.txt","r");
+    fscanf(fl1, "%d", &x);
+    fclose(fl1);
+    printf("%d\n", x);
+    sleep(1);
 }
 
 void readBillingInfo () {
-    //printf("%s",BillingInfo);
+    int x;
+    FILE* fl1 = fopen("./txt/BillingInfo.txt","r");
+    fscanf(fl1, "%d", &x);
+    fclose(fl1);
+    printf("%d\n", x);
+    sleep(1);
 }
 
 void readCustomerOrderInfo() {
-   // printf("%s",CustomerOrderInfo);
+    int x;
+    FILE* fl1 = fopen("./txt/CustomerOrder.txt","r");
+    fscanf(fl1, "%d", &x);
+    fclose(fl1);
+    printf("%d\n", x);
+    sleep(1);
 }
 
 void readBuyerInfo() {
