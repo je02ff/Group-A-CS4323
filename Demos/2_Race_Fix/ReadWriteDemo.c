@@ -24,10 +24,11 @@ int id;
 int numReader;
 bool readOpen;
 
-
+//FIXED CODE
 void *reader(void *value){
    int x;
    numReader++;
+   
    //first reader needs to get the lock and tell the other readers is ok to go on
    if(numReader == 1){
    //printf("IN IF \n");
@@ -35,14 +36,14 @@ void *reader(void *value){
    //printf("AFTER LOCK \n");
    readOpen = true;
    }
-   //printf("AFTER IF %d\n", numReader);
+   printf("READER NUMBER %d\n", numReader);
    
    //makes readers that are not the first wait until the first reader gets the lock
    while(!readOpen){}
    //printf("AFTER WHILE \n");
    FILE* fl2 = fopen("bill.txt","r");
    fscanf(fl2, "%d", &x);
-   //printf("READING: %d\n", x);
+   printf("READING: %d\n", x);
    numReader--;
    fclose(fl2);
    //gives job to the last reader to release the lock and turn off "reading" mode so to speak
@@ -59,15 +60,46 @@ void *writer(void *value){
    FILE* fl2 = fopen("bill.txt","r");
    fscanf(fl2, "%d", &x);
    fclose(fl2);
-   //printf("AFTER FIRST FILE %d\n", x);
+   printf("AFTER READ IN THE WRITE: %d\n", x);
    x++;
    fl2 = fopen("bill.txt","w");
    fprintf(fl2, "%d", x);
    fclose(fl2);
    semop(id,&v,1);
-   //printf("AFTER LOCK \n");
+   printf("RESULT WRITING BACK: %d\n",x);
+}
+//END OF FIXED CODE
+
+//BROKEN CODE
+/*void *reader(void *value){
+   int x;
+   numReader++;
+  
+   printf("READER NUMBER %d\n", numReader);
+
+   FILE* fl2 = fopen("bill.txt","r");
+   fscanf(fl2, "%d", &x);
+   printf("READING: %d\n", x);
+   numReader--;
+   fclose(fl2);
+
 }
 
+void *writer(void *value){
+   int x;
+
+   FILE* fl2 = fopen("bill.txt","r");
+   fscanf(fl2, "%d", &x);
+   fclose(fl2);
+   printf("AFTER READ IN THE WRITE: %d\n", x);
+   x++;
+   fl2 = fopen("bill.txt","w");
+   fprintf(fl2, "%d", x);
+   fclose(fl2);
+
+   printf("RESULT WRITING BACK: %d\n",x);
+}*/
+//END OF BROKEN CODE
 int main(){
   id = semget(KEY,1,0666 | IPC_CREAT);
   readOpen = false;
@@ -84,17 +116,20 @@ int main(){
    pthread_t thread3;
    pthread_t thread4;
    pthread_t thread5;
+   pthread_t thread6;
    pthread_t thread2;
    pthread_create(&thread1, NULL, reader, NULL);
    pthread_create(&thread2, NULL, writer, NULL);
    pthread_create(&thread3, NULL, reader, NULL);
    pthread_create(&thread4, NULL, reader, NULL);
    pthread_create(&thread5, NULL, reader, NULL);
+   pthread_create(&thread6, NULL, writer, NULL);
    pthread_join(thread1,NULL);
    pthread_join(thread2,NULL);
    pthread_join(thread3,NULL);
    pthread_join(thread4,NULL);
    pthread_join(thread5,NULL);
+   pthread_join(thread6,NULL);
   
   return 0;
 }
