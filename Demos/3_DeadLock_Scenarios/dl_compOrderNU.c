@@ -9,6 +9,8 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -59,7 +61,7 @@ void readBuyerInfo();
 int main() {
     /*----Initialize Semaphores----*/
     //Unlink any semaphores from previous tests, should only be active in the first process to begin demo
-    sem_unlink(SEM_WRT_PRODUCT);
+    /*sem_unlink(SEM_WRT_PRODUCT);
     sem_unlink(SEM_WRT_BILLING);
     sem_unlink(SEM_WRT_SELLER);
     sem_unlink(SEM_WRT_BUYER);
@@ -75,7 +77,7 @@ int main() {
     sem_unlink(SEM_COUNTER_SELLER);
     sem_unlink(SEM_COUNTER_BILLING);
     sem_unlink(SEM_COUNTER_PRODUCT);
-    sem_unlink(SEM_COUNTER_ORDER);
+    sem_unlink(SEM_COUNTER_ORDER);*/
 
     //binary semaphores to lock writing priveledges
     sem_t *wrtProductInfo = sem_open(SEM_WRT_PRODUCT, O_CREAT, 0660, 1);
@@ -277,12 +279,14 @@ int main() {
             //the following read occurs in a call to [VALIDATE_ID]
             //readProductInfo();
             if (com.valid) {
-                printf("Writer is waiting for ProductInfo\n");
-                sem_wait(wrtProductInfo);
-                printf("Writer now waiting for BillingInfo\n");
-                sem_wait(wrtBillingInfo);
                 printf("Writer now waiting for OrderInfo\n");
                 sem_wait(wrtCustomerOrder);
+                printf("Writer now waiting for BillingInfo\n");
+                sem_wait(wrtBillingInfo);
+                printf("Writer is waiting for ProductInfo\n");
+                sem_wait(wrtProductInfo);
+
+
 
                 readProductInfo();
                 readBillingInfo();
@@ -611,7 +615,7 @@ void writeProductInfo () {
     FILE*  fl1 = fopen("./txt/ProductInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("product: %s\n",temp);
     sleep(1);
 }
 
@@ -619,7 +623,7 @@ void writeSellerInfo () {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
     FILE*  fl1 = fopen("./txt/SellerInfo.txt","w");
-    fprintf(fl1, "%s", temp);
+    fprintf(fl1, "seller: %s", temp);
     fclose(fl1);
     printf("%s\n",temp);
     sleep(1);
@@ -631,7 +635,7 @@ void writeBillingInfo () {
     FILE*  fl1 = fopen("./txt/BillingInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("billing: %s\n",temp);
     sleep(1);
 }
 
@@ -641,7 +645,7 @@ void writeCustomerOrderInfo() {
     FILE*  fl1 = fopen("./txt/CustomerOrder.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("order: %s\n",temp);
     sleep(1);
 }
 
@@ -651,7 +655,7 @@ void writeBuyerInfo() {
     FILE*  fl1 = fopen("./txt/CustomerInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("buyer: %s\n",temp);
     sleep(1);
 }
 
@@ -660,7 +664,7 @@ void readProductInfo () {
     FILE* fl1 = fopen("./txt/ProductInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("product: %d\n", x);
     //sleep(1);
 }
 
@@ -669,7 +673,7 @@ void readSellerInfo () {
     FILE* fl1 = fopen("./txt/SellerInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("seller: %d\n", x);
     //sleep(1);
 }
 
@@ -678,7 +682,7 @@ void readBillingInfo () {
     FILE* fl1 = fopen("./txt/BillingInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("billing: %d\n", x);
     //sleep(1);
 }
 
@@ -687,7 +691,7 @@ void readCustomerOrderInfo() {
     FILE* fl1 = fopen("./txt/CustomerOrder.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("order: %d\n", x);
     //sleep(1);
 }
 
@@ -696,7 +700,7 @@ void readBuyerInfo() {
     FILE* fl1 = fopen("./txt/CustomerInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("buyer: %d\n", x);
     //sleep(1);
 }
 

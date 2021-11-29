@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <fcntl.h>
 #include "readDatabaseIntoArray.h"
 #include "tcpStuff.h"
 #include "Roden.h"
@@ -18,6 +19,7 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
+
 
 
 /********************
@@ -35,6 +37,20 @@ void * threadTask(void* ptrClientSocket) {
 }
 
 int main() {
+    //Unlink any semaphores from previous tests, should only be active in the first process to begin demo
+    sem_unlink(SEM_WRT_PRODUCT);
+    sem_unlink(SEM_WRT_BILLING);
+    sem_unlink(SEM_WRT_SELLER);
+    sem_unlink(SEM_WRT_BUYER);
+    sem_unlink(SEM_WRT_ORDER);
+
+    sem_unlink(SEM_READ_PRODUCT);
+    sem_unlink(SEM_READ_BILLING);
+    sem_unlink(SEM_READ_SELLER);
+    sem_unlink(SEM_READ_BUYER);
+    sem_unlink(SEM_READ_ORDER);
+
+
     /* TCP Vars */
     int hSocket;
     int clientSock;

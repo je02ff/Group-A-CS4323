@@ -9,6 +9,8 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -611,7 +613,7 @@ void writeProductInfo () {
     FILE*  fl1 = fopen("./txt/ProductInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("product: %s\n",temp);
     sleep(1);
 }
 
@@ -619,7 +621,7 @@ void writeSellerInfo () {
     char temp[30] = {0};
     sprintf(temp,"%d", rand());
     FILE*  fl1 = fopen("./txt/SellerInfo.txt","w");
-    fprintf(fl1, "%s", temp);
+    fprintf(fl1, "seller: %s", temp);
     fclose(fl1);
     printf("%s\n",temp);
     sleep(1);
@@ -631,7 +633,7 @@ void writeBillingInfo () {
     FILE*  fl1 = fopen("./txt/BillingInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("billing: %s\n",temp);
     sleep(1);
 }
 
@@ -641,7 +643,7 @@ void writeCustomerOrderInfo() {
     FILE*  fl1 = fopen("./txt/CustomerOrder.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("order: %s\n",temp);
     sleep(1);
 }
 
@@ -651,7 +653,7 @@ void writeBuyerInfo() {
     FILE*  fl1 = fopen("./txt/CustomerInfo.txt","w");
     fprintf(fl1, "%s", temp);
     fclose(fl1);
-    printf("%s\n",temp);
+    printf("buyer: %s\n",temp);
     sleep(1);
 }
 
@@ -660,7 +662,7 @@ void readProductInfo () {
     FILE* fl1 = fopen("./txt/ProductInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("product: %d\n", x);
     //sleep(1);
 }
 
@@ -669,7 +671,7 @@ void readSellerInfo () {
     FILE* fl1 = fopen("./txt/SellerInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("seller: %d\n", x);
     //sleep(1);
 }
 
@@ -678,7 +680,7 @@ void readBillingInfo () {
     FILE* fl1 = fopen("./txt/BillingInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("billing: %d\n", x);
     //sleep(1);
 }
 
@@ -687,7 +689,7 @@ void readCustomerOrderInfo() {
     FILE* fl1 = fopen("./txt/CustomerOrder.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("order: %d\n", x);
     //sleep(1);
 }
 
@@ -696,7 +698,7 @@ void readBuyerInfo() {
     FILE* fl1 = fopen("./txt/CustomerInfo.txt","r");
     fscanf(fl1, "%d", &x);
     fclose(fl1);
-    printf("%d\n", x);
+    printf("buyer: %d\n", x);
     //sleep(1);
 }
 

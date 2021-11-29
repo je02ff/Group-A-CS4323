@@ -24,7 +24,7 @@
 #include "readDatabaseIntoArray.h"
 #include "JacobWilson.h"
 
-int deletedProducts[maxRowsInDB] = {0};
+
 
 /*---TCP Stuff---*/
 
@@ -248,51 +248,145 @@ bool validateID(char* buffer) {
 
     if (strstr(dbName, "[BUYER]") != NULL) {
         struct csvClientInfo buyerList[maxRowsInDB];
+        sem_wait(CustomerInfoMutex);
+        buyerReaderCounter++;
+        if(buyerReaderCounter == 1) {
+            sem_wait(wrtCustomerInfo);
+        }
+        sem_post(CustomerInfoMutex);
         if (loadClientInfo("CustomerInfo.txt", buyerList)) {
+            sem_wait(CustomerInfoMutex);
+            buyerReaderCounter--;
+            if(buyerReaderCounter== 0 ) {
+                sem_post(wrtCustomerInfo);
+            }
+            sem_post(CustomerInfoMutex);
             while (buyerList[rowCount].uuid != 0) {
-                if (buyerList[rowCount].uuid == idToValidate) {return true; }
+                if (buyerList[rowCount].uuid == idToValidate) {
+                    return true;
+                }
                 rowCount++;
             }
         }
+        sem_wait(CustomerInfoMutex);
+        buyerReaderCounter--;
+        if(buyerReaderCounter== 0 ) {
+            sem_post(wrtCustomerInfo);
+        }
+        sem_post(CustomerInfoMutex);
         return false; // returns false if a problem or if ID is not present
 
     } else if (strstr(dbName, "[SELLER]") != NULL) {
         struct csvClientInfo sellerList[maxRowsInDB];
+        sem_wait(SellerInfoMutex);
+        sellerReaderCounter++;
+        if(sellerReaderCounter == 1) {
+            sem_wait(wrtSellerInfo);
+        }
+        sem_post(SellerInfoMutex);
         if (loadClientInfo("SellerInfo.txt", sellerList)) {
+            sem_wait(SellerInfoMutex);
+            sellerReaderCounter--;
+            if(sellerReaderCounter== 0 ) {
+                sem_post(wrtSellerInfo);
+            }
+            sem_post(SellerInfoMutex);
             while (sellerList[rowCount].uuid != 0) {
                 if (sellerList[rowCount].uuid == idToValidate) { return true; }
                 rowCount++;
             }
         }
+        sem_wait(SellerInfoMutex);
+        sellerReaderCounter--;
+        if(sellerReaderCounter== 0 ) {
+            sem_post(wrtSellerInfo);
+        }
+        sem_post(SellerInfoMutex);
+
         return false;
 
     } else if (strstr(dbName, "[PRODUCT]") != NULL) {
         struct csvProductInfo productList[maxRowsInDB];
+        sem_wait(ProductInfoMutex);
+        productReaderCounter++;
+        if(productReaderCounter == 1) {
+            sem_wait(wrtProductInfo);
+        }
+        sem_post(ProductInfoMutex);
         if (loadProductInfo(productList)) {
+            sem_wait(ProductInfoMutex);
+            productReaderCounter--;
+            if(productReaderCounter == 0 ) {
+                sem_post(wrtProductInfo);
+            }
+            sem_post(ProductInfoMutex);
             while (productList[rowCount].productId != 0) {
                 if (productList[rowCount].productId == idToValidate) { return true; }
                 rowCount++;
             }
         }
+        sem_wait(ProductInfoMutex);
+        productReaderCounter--;
+        if(productReaderCounter == 0 ) {
+            sem_post(wrtProductInfo);
+        }
+        sem_post(ProductInfoMutex);
         return false;
 
     } else if (strstr(dbName, "[BILLING]") != NULL) {
         struct csvBillingInfo billingList[maxRowsInDB];
+        sem_wait(BillingInfoMutex);
+        billingReaderCounter++;
+        if(billingReaderCounter == 1) {
+            sem_wait(wrtBillingInfo);
+        }
+        sem_post(BillingInfoMutex);
         if (loadBillingInfo(billingList)) {
+            sem_wait(BillingInfoMutex);
+            billingReaderCounter--;
+            if(billingReaderCounter== 0 ) {
+                sem_post(wrtBillingInfo);
+            }
+            sem_post(BillingInfoMutex);
             while (billingList[rowCount].orderId != 0) {
                 if (billingList[rowCount].orderId == idToValidate) { return true; }
                 rowCount++;
             }
         }
+        sem_wait(BillingInfoMutex);
+        billingReaderCounter--;
+        if(billingReaderCounter== 0 ) {
+            sem_post(wrtBillingInfo);
+        }
+        sem_post(BillingInfoMutex);
+        return false;
     } else if (strstr(dbName, "[ORDER]") != NULL) {
         struct csvCustomerOrderInfo orderData[maxRowsInDB];
+        sem_wait(CustomerOrderMutex);
+        orderReaderCounter++;
+        if(orderReaderCounter == 1) {
+            sem_wait(wrtCustomerOrder);
+        }
+        sem_post(CustomerOrderMutex);
         if (loadCustomerOrderInfo(orderData)) {
+            sem_wait(CustomerOrderMutex);
+            orderReaderCounter--;
+            if(orderReaderCounter== 0 ) {
+                sem_post(wrtCustomerOrder);
+            }
+            sem_post(CustomerOrderMutex);
             while (orderData[rowCount].orderId != 0) {
                 if (orderData[rowCount].productId == idToValidate) { return true; }
                 rowCount++;
             }
         }
-    return false;
+        sem_wait(CustomerOrderMutex);
+        orderReaderCounter--;
+        if(orderReaderCounter== 0 ) {
+            sem_post(wrtCustomerOrder);
+        }
+        sem_post(CustomerOrderMutex);
+        return false;
 
     } else return false;
 }
@@ -345,8 +439,8 @@ void writeNewClientData(char *buffer, int* clientSock) {
 
     if (strstr(clientType, "[BUYER]") != NULL) {
         int lastOccupiedRow = 0;
-
         uuid = generateUID();
+        sem_wait(wrtCustomerInfo); //ask for writer lock
         loadClientInfo("CustomerInfo.txt", clientDB);
         while (clientDB[lastOccupiedRow].uuid != 0) {
             lastOccupiedRow++;
@@ -361,12 +455,13 @@ void writeNewClientData(char *buffer, int* clientSock) {
 
         sprintf(stringID, "%d", uuid);
         writeSocket(clientSock,stringID);
-
         writeBackClientStruct("CustomerInfo.txt", clientDB);
+        sem_post(wrtCustomerInfo); //release writer lock
     } else {
         int lastOccupiedRow = 0;
-
         uuid = generateUID();
+
+        sem_wait(wrtSellerInfo); //ask for writer lock
         loadClientInfo("SellerInfo.txt", clientDB);
 
         while (clientDB[lastOccupiedRow].uuid != 0) {
@@ -383,8 +478,8 @@ void writeNewClientData(char *buffer, int* clientSock) {
 
         sprintf(stringID, "%d", uuid);
         writeSocket(clientSock,stringID);
-
         writeBackClientStruct("SellerInfo.txt", clientDB);
+        sem_post(wrtSellerInfo);  //release writer lock
     }
 }
 
@@ -404,6 +499,12 @@ void viewProducts(char *buffer, int* clientSock) {
     if (strstr(clientType, "[BUYER]") != NULL) {
         //SEND ALL: ProductIDs, Product Names, Quantitys, Price/Units*/
         struct csvProductInfo productList[maxRowsInDB];
+        sem_wait(ProductInfoMutex);
+        productReaderCounter++;
+        if(productReaderCounter == 1) {
+            sem_wait(wrtProductInfo);
+        }
+        sem_post(ProductInfoMutex);
         if (loadProductInfo(productList)) {
             while(productList[rowCount].productId != 0) {
                 sprintf(numsToString,"%d", productList[rowCount].productId);
@@ -424,6 +525,12 @@ void viewProducts(char *buffer, int* clientSock) {
                 strcat(dataToSendClient, ",\n");
                 rowCount++;
             }
+            sem_wait(ProductInfoMutex);
+            productReaderCounter--;
+            if(productReaderCounter == 0 ) {
+                sem_post(wrtProductInfo);
+            }
+            sem_post(ProductInfoMutex);
             writeSocket(clientSock,dataToSendClient);
         }
     } else {                                            //IF Seller
@@ -434,6 +541,12 @@ void viewProducts(char *buffer, int* clientSock) {
 
         int requestingSellerID = atoi(strtok(buffer,","));
         struct csvProductInfo productList[maxRowsInDB];
+        sem_wait(ProductInfoMutex);
+        productReaderCounter++;
+        if(productReaderCounter == 1) {
+            sem_wait(wrtProductInfo);
+        }
+        sem_post(ProductInfoMutex);
         if (loadProductInfo(productList)) {
             while(productList[rowCount].productId != 0 && productList[rowCount].sellerId != requestingSellerID) {
                 sprintf(numsToString,"%d", productList[rowCount].productId);
@@ -455,7 +568,12 @@ void viewProducts(char *buffer, int* clientSock) {
                 bzero(numsToString,20);
                 rowCount++;
             }
-
+            sem_wait(ProductInfoMutex);
+            productReaderCounter--;
+            if(productReaderCounter == 0 ) {
+                sem_post(wrtProductInfo);
+            }
+            sem_post(ProductInfoMutex);
             writeSocket(clientSock,dataToSendClient);
         }
     }
@@ -607,6 +725,14 @@ void completeAnOrder(char *buffer, int* clientSock) {
     sprintf(buffer, "%s\n", ptr);
 
     extractBuyerOrder(buffer, orderList);
+
+    //Writer is waiting for ProductInfo
+    sem_wait(wrtProductInfo);
+    //Writer now waiting for BillingInfo
+    sem_wait(wrtBillingInfo);
+    //Writer now waiting for OrderInfo
+    sem_wait(wrtCustomerOrder);
+
     loadProductInfo(productList);
 
     if(validateBuyerOrder(orderList, productList)) {
@@ -629,6 +755,13 @@ void completeAnOrder(char *buffer, int* clientSock) {
 
         writeSocket(clientSock, "[CONFIRMATION]");
     } else writeSocket(clientSock, "[INVALID]");
+
+    sem_post(wrtProductInfo);
+    //Writer released Product lock
+    sem_post(wrtBillingInfo);
+    //Writer released Billing lock
+    sem_post(wrtCustomerOrder);
+    //Writer released Order lock
 }
 
 void buyerViewsOrder(char *buffer, int* clientSock) {
@@ -640,7 +773,19 @@ void buyerViewsOrder(char *buffer, int* clientSock) {
     char numsToString[20] = {0};
 
     userID = atoi(strtok(buffer, ","));
+    sem_wait(BillingInfoMutex);
+    billingReaderCounter++;
+    if(billingReaderCounter == 1) {
+        sem_wait(wrtBillingInfo);
+    }
+    sem_post(BillingInfoMutex);
     loadBillingInfo(billingInfo);
+    sem_wait(BillingInfoMutex);
+    billingReaderCounter--;
+    if(billingReaderCounter== 0 ) {
+        sem_post(wrtBillingInfo);
+    }
+    sem_post(BillingInfoMutex);
 
     while(billingInfo[rowCount].orderId != 0) {
         if(billingInfo[rowCount].customerId == userID) {
@@ -668,7 +813,19 @@ void buyerViewsInfo(char *buffer, int* clientSock) {
     char numsToString[20] = {0};
 
     userID = atoi(strtok(buffer, ","));
+    sem_wait(CustomerInfoMutex);
+    buyerReaderCounter++;
+    if(buyerReaderCounter == 1) {
+        sem_wait(wrtCustomerInfo);
+    }
+    sem_post(CustomerInfoMutex);
     loadClientInfo("CustomerInfo.txt", clientInfo);
+    sem_wait(CustomerInfoMutex);
+    buyerReaderCounter--;
+    if(buyerReaderCounter== 0 ) {
+        sem_post(wrtCustomerInfo);
+    }
+    sem_post(CustomerInfoMutex);
 
     while(clientInfo[rowCount].uuid != 0) {
         if(clientInfo[rowCount].uuid == userID) {
@@ -709,6 +866,10 @@ void addNewProduct(char *buffer, int* clientSock) {
     struct csvProductInfo pList[maxRowsInDB];
     int newRecordRow = 0;
     char *ptr;
+
+    //Writer is waiting for ProductInfo
+    sem_wait(wrtProductInfo);
+
     loadProductInfo(pList);
 
     while( pList[newRecordRow].productId != 0){
@@ -731,6 +892,9 @@ void addNewProduct(char *buffer, int* clientSock) {
 
     //write plist to text file
     writeBackProductStruct(pList);
+
+    sem_post(wrtProductInfo);
+    //Writer released Product lock
 
     writeSocket(clientSock, "[CONFIRMATION]");
 }
@@ -759,7 +923,10 @@ void deleteProduct(char *buffer, int* clientSock) {
 
     if(validateID(productIdToValidate)) {
         struct csvProductInfo modifiedProductList[maxRowsInDB];
-
+        //Writer is waiting for ProductInfo
+        sem_wait(wrtProductInfo);
+        //Writer is waiting for deletedProductList
+        //sem_wait(wrtDeletedProductList);
         loadProductInfo(pList);
 
         //find row number of the product to delete
@@ -792,6 +959,10 @@ void deleteProduct(char *buffer, int* clientSock) {
         }
         //write modifiedProductList to ProductInfo.txt
         writeBackProductStruct(modifiedProductList);
+        sem_post(wrtProductInfo);
+        //Writer released ProductInfo lock
+        //sem_post(wrtDeletedProductList);
+        //Writer released deletedProductList lock
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -821,6 +992,8 @@ void modifyQuantity(char *buffer, int* clientSock) {
 
     if(validateID(productIdToValidate)) {
 
+        //Writer is waiting for ProductInfo
+        sem_wait(wrtProductInfo);
         loadProductInfo(pList);
 
         //find row number of the product to modify
@@ -840,6 +1013,8 @@ void modifyQuantity(char *buffer, int* clientSock) {
         }
         //write plist to ProductInfo.txt
         writeBackProductStruct(pList);
+        sem_post(wrtProductInfo);
+        //Writer released ProductInfo lock
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -869,6 +1044,8 @@ void modifyPrice(char *buffer, int* clientSock) {
 
     if(validateID(productIdToValidate)) {
 
+        //Writer is waiting for ProductInfo
+        sem_wait(wrtProductInfo);
         loadProductInfo(pList);
 
         //find row number of the product to modify
@@ -888,6 +1065,8 @@ void modifyPrice(char *buffer, int* clientSock) {
         }
         //write plist to ProductInfo.txt
         writeBackProductStruct(pList);
+        sem_post(wrtProductInfo);
+        //Writer released ProductInfo lock
         writeSocket(clientSock, "[CONFIRMATION]");
 
     } else {
@@ -912,7 +1091,19 @@ void sellerViewsOrders(char *buffer, int* clientSock) {
     sellerID = atoi(ptr);
 
     //load and extract all productIDs owned by the seller
+    sem_wait(ProductInfoMutex);
+    productReaderCounter++;
+    if(productReaderCounter == 1) {
+        sem_wait(wrtProductInfo);
+    }
+    sem_post(ProductInfoMutex);
     loadProductInfo(pList);
+    sem_wait(ProductInfoMutex);
+    productReaderCounter--;
+    if(productReaderCounter == 0 ) {
+        sem_post(wrtProductInfo);
+    }
+    sem_post(ProductInfoMutex);
 
     while (pList[rowCounter].productId != 0) {
         if (pList[rowCounter].sellerId == sellerID) {
@@ -922,7 +1113,19 @@ void sellerViewsOrders(char *buffer, int* clientSock) {
         rowCounter++;
     }
     //scan CustomerOrder database and add orders owned by seller to dataToSend
+    sem_wait(CustomerOrderMutex);
+    orderReaderCounter++;
+    if(orderReaderCounter == 1) {
+        sem_wait(wrtCustomerOrder);
+    }
+    sem_post(CustomerOrderMutex);
     loadCustomerOrderInfo(customerOrderInfo);
+    sem_wait(CustomerOrderMutex);
+    orderReaderCounter--;
+    if(orderReaderCounter== 0 ) {
+        sem_post(wrtCustomerOrder);
+    }
+    sem_post(CustomerOrderMutex);
     for(int i = 0; i < arrayCounter; i++) {
         rowCounter = 0;
         while(customerOrderInfo[rowCounter].orderId != 0) {
@@ -1017,6 +1220,9 @@ void sellerEditsName(char* buffer, int id) {
     struct csvClientInfo sellerList[maxRowsInDB];
     int sellerRowInDB = 0;
 
+    //Writer is waiting for SellerInfo
+    sem_wait(wrtSellerInfo);
+
     loadClientInfo("SellerInfo.txt", sellerList);
     while(sellerList[sellerRowInDB].uuid != id) {
         sellerRowInDB++;
@@ -1032,12 +1238,18 @@ void sellerEditsName(char* buffer, int id) {
 
     //writeback sellerList to SellerInfo.txt
     writeBackClientStruct("SellerInfo.txt", sellerList);
+
+    sem_post(wrtSellerInfo);
+    //Writer released SellerInfo lock
 }
 
 void sellerEditsNumber(char* buffer, int id) {
     char* ptr;
     struct csvClientInfo sellerList[maxRowsInDB];
     int sellerRowInDB = 0;
+
+    //Writer is waiting for SellerInfo
+    sem_wait(wrtSellerInfo);
 
     loadClientInfo("SellerInfo.txt", sellerList);
     while(sellerList[sellerRowInDB].uuid != id) {
@@ -1050,12 +1262,18 @@ void sellerEditsNumber(char* buffer, int id) {
 
     //writeback sellerList to SellerInfo.txt
     writeBackClientStruct("SellerInfo.txt", sellerList);
+
+    sem_post(wrtSellerInfo);
+    //Writer released SellerInfo lock
 }
 
 void sellerEditsAddress(char* buffer, int id) {
     char* ptr;
     struct csvClientInfo sellerList[maxRowsInDB];
     int sellerRowInDB = 0;
+
+    //Writer is waiting for SellerInfo
+    sem_wait(wrtSellerInfo);
 
     loadClientInfo("SellerInfo.txt", sellerList);
     while(sellerList[sellerRowInDB].uuid != id) {
@@ -1080,12 +1298,18 @@ void sellerEditsAddress(char* buffer, int id) {
 
     //writeback sellerList to SellerInfo.txt
     writeBackClientStruct("SellerInfo.txt", sellerList);
+
+    sem_post(wrtSellerInfo);
+    //Writer released SellerInfo lock
 }
 
 void buyerEditsNumber(char* buffer, int id) {
     char* ptr;
     struct csvClientInfo buyerList[maxRowsInDB];
     int buyerRowInDB = 0;
+
+    //Writer is waiting for CustomerInfo
+    sem_wait(wrtCustomerInfo);
 
     loadClientInfo("CustomerInfo.txt", buyerList);
     while(buyerList[buyerRowInDB].uuid != id) {
@@ -1098,6 +1322,9 @@ void buyerEditsNumber(char* buffer, int id) {
 
     //writeback buyerList to CustomerInfo.txt
     writeBackClientStruct("CustomerInfo.txt", buyerList);
+
+    sem_post(wrtCustomerInfo);
+    //Writer released CustomerInfo lock
 }
 
 void buyerEditsName(char* buffer, int id) {
@@ -1111,6 +1338,13 @@ void buyerEditsName(char* buffer, int id) {
     int rowCount = 0;
     char firstName[20] = {0};
     char lastName[20] = {0};
+
+    //Writer is waiting for CustomerInfo
+    sem_wait(wrtCustomerInfo);
+    //Writer is waiting for Billing Info
+    sem_wait(wrtBillingInfo);
+    //Writer is waiting for Order Info
+    sem_wait(wrtCustomerOrder);
 
     //edit name in CustomerInfo
     loadClientInfo("CustomerInfo.txt", buyerList);
@@ -1167,6 +1401,13 @@ void buyerEditsName(char* buffer, int id) {
     }
     //write back customerOrderInfo to CustomerOrderInfo.txt
     writeBackCustomerOrderStruct(customerOrderInfo);
+
+    sem_post(wrtCustomerInfo);
+    //Writer released CustomerInfo lock
+    sem_post(wrtBillingInfo);
+    //Writer released Billing lock
+    sem_post(wrtCustomerOrder);
+    //Writer released Order lock
 }
 
 void buyerEditsAddress(char* buffer, int id) {
@@ -1182,6 +1423,13 @@ void buyerEditsAddress(char* buffer, int id) {
     char city[20] = {0};
     char state[20] = {0};
     char zipCode[20] = {0};
+
+    //Writer is waiting for CustomerInfo
+    sem_wait(wrtCustomerInfo);
+    //Writer is waiting for Billing Info
+    sem_wait(wrtBillingInfo);
+    //Writer is waiting for Order Info
+    sem_wait(wrtCustomerOrder);
 
     //edit name in CustomerInfo
     loadClientInfo("CustomerInfo.txt", buyerList);
@@ -1260,6 +1508,13 @@ void buyerEditsAddress(char* buffer, int id) {
     }
     //write back customerOrderInfo to CustomerOrderInfo.txt
     writeBackCustomerOrderStruct(customerOrderInfo);
+
+    sem_post(wrtCustomerInfo);
+    //Writer released CustomerInfo lock
+    sem_post(wrtBillingInfo);
+    //Writer released Billing lock
+    sem_post(wrtCustomerOrder);
+    //Writer released Order lock
 }
 
 void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TEST
@@ -1280,6 +1535,11 @@ void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TE
 
     ptr = strtok(NULL, ",");
     productIDtoReturn = atoi(ptr);
+
+    //Writer is waiting for Billing info
+    sem_wait(wrtBillingInfo);
+    //Writer is waiting for Order info
+    sem_wait(wrtCustomerOrder);
 
     loadCustomerOrderInfo(customerOrderInfo);
     loadBillingInfo(billingInfo);
@@ -1315,6 +1575,11 @@ void buyerModifiesOrder(char *buffer, int* clientSock) { //TODO STILL NEED TO TE
 
     //write billingInfo to BillingInfo.txt
     writeBackBillingStruct(billingInfo);
+
+    sem_post(wrtBillingInfo);
+    //Writer released Billing lock
+    sem_post(wrtCustomerOrder);
+    //Writer released Order lock
 }
 
 
@@ -1333,7 +1598,19 @@ void readOrderDetails(char *buffer, int* clientSock) {
     orderID = atoi(ptr);
 
     //get productIds, quantity purchased, and item price total
+    sem_wait(CustomerOrderMutex);
+    orderReaderCounter++;
+    if(orderReaderCounter == 1) {
+        sem_wait(wrtCustomerOrder);
+    }
+    sem_post(CustomerOrderMutex);
     loadCustomerOrderInfo(customerOrderInfo);
+    sem_wait(CustomerOrderMutex);
+    orderReaderCounter--;
+    if(orderReaderCounter== 0 ) {
+        sem_post(wrtCustomerOrder);
+    }
+    sem_post(CustomerOrderMutex);
     while(customerOrderInfo[rowCount].orderId != 0) {
         if (customerOrderInfo[rowCount].orderId == orderID) {
            itemsInOrder[numOfProducts].productID = customerOrderInfo[rowCount].productId;
@@ -1344,7 +1621,19 @@ void readOrderDetails(char *buffer, int* clientSock) {
         rowCount++;
     }
     //getting product names
+    sem_wait(ProductInfoMutex);
+    productReaderCounter++;
+    if(productReaderCounter == 1) {
+        sem_wait(wrtProductInfo);
+    }
+    sem_post(ProductInfoMutex);
     loadProductInfo(pList);
+    sem_wait(ProductInfoMutex);
+    productReaderCounter--;
+    if(productReaderCounter == 0 ) {
+        sem_post(wrtProductInfo);
+    }
+    sem_post(ProductInfoMutex);
     for(int i = 0; i < numOfProducts; i++) {
         rowCount = 0;
         while(pList[rowCount].productId != 0) {
@@ -1375,7 +1664,7 @@ void readOrderDetails(char *buffer, int* clientSock) {
     writeSocket(clientSock, dataToSendClient);
 }
 
-bool validateOrderIsBuyers(char *buffer, int* clientSock) {  //TODO NEED TO TEST
+bool validateOrderIsBuyers(char *buffer, int* clientSock) {
     //Buff String: buyerID,orderID,
     int buyerID, orderID;
     char* ptr;
@@ -1388,7 +1677,19 @@ bool validateOrderIsBuyers(char *buffer, int* clientSock) {  //TODO NEED TO TEST
     ptr = strtok(NULL, ",");
     orderID = atoi(ptr);
 
+    sem_wait(BillingInfoMutex);
+    billingReaderCounter++;
+    if(billingReaderCounter == 1) {
+        sem_wait(wrtBillingInfo);
+    }
+    sem_post(BillingInfoMutex);
     loadBillingInfo(billingInfo);
+    sem_wait(BillingInfoMutex);
+    billingReaderCounter--;
+    if(billingReaderCounter== 0 ) {
+        sem_post(wrtBillingInfo);
+    }
+    sem_post(BillingInfoMutex);
 
     while(billingInfo[rowCounter].orderId != 0) {
         if(billingInfo[rowCounter].orderId == orderID) {
