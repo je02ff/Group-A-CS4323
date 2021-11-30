@@ -187,15 +187,6 @@ void listenOnSocket(const int* sock, int backLogCount) {
     }
 }
 
-void listenOnSocket2(const int* sock, int backLogCount) {
-    if(listen(*sock, backLogCount) == -1) {
-        printf("Failed to listen, exiting server\n");
-        exit(1);
-    } else {
-        printf("Listening through socket %d on port %d\n", *sock, DATASERVER_PORT_NUM);
-    }
-}
-
 bool acceptConnection(int* clientSock, const int* hSock, struct sockaddr_in* client) {
     int clientLength = sizeof(struct sockaddr_in);
     *clientSock = accept(*hSock, (struct sockaddr *)&(*client),(socklen_t*)&clientLength);
