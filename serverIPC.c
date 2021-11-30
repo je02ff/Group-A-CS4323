@@ -21,6 +21,7 @@
 #include <stddef.h>
 
 #define SERVER_PORT_NUM 8081
+#define DATASERVER_PORT_NUM 8080
 #define CLIENT_BACKLOG 25
 #define MSG_BUFFER_SIZE 10240
 #define PARENT_QUEUE_NAME  "/sp-example-parent"
@@ -41,6 +42,11 @@ void bindSocket(struct sockaddr_in *sAddress, const int *sock);
 
 void listenOnSocket(const int* sock, int backLogCount);
 
+void bindSocket2(struct sockaddr_in *sAddress, const int *sock);
+
+void listenOnSocket2(const int* sock, int backLogCount);
+
+
 bool acceptConnection(int* clientSock, const int* hSock, struct sockaddr_in* client);
 
 void readSocket(const int* sock, char* buffer);
@@ -51,8 +57,10 @@ int main() {
     /* TCP Vars */
     int hSocket;
     int clientSock;
+    int dataServ;
     struct sockaddr_in server = {0};
     struct sockaddr_in client = {0};
+    struct sockaddr_in dataServe = {0};
     char buffer[MSG_BUFFER_SIZE] = {0};
     pid_t pid;
     int fd[2];
@@ -69,8 +77,10 @@ int main() {
     createSocket(&hSocket);                                             //Creating socket for server to communicate through
     bindSocket(&server, &hSocket);                                      // binding socket to address
     listenOnSocket(&hSocket, CLIENT_BACKLOG);                           //Listen for clients, maximum of 3 connections
-
-  
+    //creates, binds, and listens to the socket to the database server
+    createSocket(&dataServ);
+    bindSocket2(&dataServe,&dataServ);
+    listenOnSocket(&dataServ, CLIENT_BACKLOG);
     /*----Forking Clients---- */
     while (1) {
         if (acceptConnection(&clientSock, &hSocket, &client) == true) { //Accept incoming client connection
@@ -108,11 +118,14 @@ int main() {
       	           memset(buffer2,0, MSG_BUFFER_SIZE);
       	           if(mq_receive(messages, buffer2, MSG_BUFFER_SIZE_QUEUE, NULL) == -1){
       	              printf("failed to receive message");
+      	              continue;
       	           }
-                   //send the string to the dataserver
-                   
-                   //change success to the result of the database server
-                   write(fd[1], "SUCCESS", 8);    
+                   //TODO send the string to the dataserver
+                   writeSocket(&dataServ,buffer2);
+                   memset(buffer2,0, MSG_BUFFER_SIZE);
+                   readSocket(&dataServ,buffer2);
+                   //TODO change success to the result of the database server
+                   write(fd[1], buffer2, sizeof(buffer2));    
       	        }
       	        close(fd[1]);                           
                 wait(NULL); //reap children
@@ -140,8 +153,9 @@ void createSocket(int *sock) {
 
 void bindSocket(struct sockaddr_in *sAddress, const int *sock) {
     sAddress->sin_family = AF_INET;
-    sAddress->sin_addr.s_addr = htonl(INADDR_ANY);
+    sAddress->sin_addr.s_addr = htonl(INADDR_ANY);    
     sAddress->sin_port = htons(SERVER_PORT_NUM);
+
     if (bind(*sock,(struct sockaddr *)&(*sAddress), sizeof(*sAddress)) == -1) {
         printf("Failed to bind socket to port, exiting server\n");
         exit(1);
@@ -150,12 +164,35 @@ void bindSocket(struct sockaddr_in *sAddress, const int *sock) {
     }
 }
 
+void bindSocket2(struct sockaddr_in *sAddress, const int *sock) {
+    sAddress->sin_family = AF_INET;
+    sAddress->sin_addr.s_addr = htonl(INADDR_ANY);    
+    sAddress->sin_port = htons(DATASERVER_PORT_NUM);
+
+    if (bind(*sock,(struct sockaddr *)&(*sAddress), sizeof(*sAddress)) == -1) {
+        printf("Failed to bind socket to port, exiting server\n");
+        exit(1);
+    } else {
+        printf("Socket bound to port\n");
+    }
+}
+
+
 void listenOnSocket(const int* sock, int backLogCount) {
     if(listen(*sock, backLogCount) == -1) {
         printf("Failed to listen, exiting server\n");
         exit(1);
     } else {
         printf("Listening through socket %d on port %d\n", *sock, SERVER_PORT_NUM);
+    }
+}
+
+void listenOnSocket2(const int* sock, int backLogCount) {
+    if(listen(*sock, backLogCount) == -1) {
+        printf("Failed to listen, exiting server\n");
+        exit(1);
+    } else {
+        printf("Listening through socket %d on port %d\n", *sock, DATASERVER_PORT_NUM);
     }
 }
 
