@@ -68,7 +68,7 @@ int writeBackProductStruct(struct csvProductInfo table[]){
 //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
-     int num = 0;
+   int num = 0;
    char tempChar;
    FILE* fl2 = fopen("ProductInfo.txt","r");
    tempChar = fgetc(fl2);
@@ -77,9 +77,12 @@ int writeBackProductStruct(struct csvProductInfo table[]){
       if(tempChar == '\n'){
       num++;
       }
+      tempChar = fgetc(fl2);
    }
-   flcose(fl2);
+   rewind(fl2);
+   fclose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   //num++;
    num++;
    for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
@@ -129,9 +132,12 @@ int writeBackBillingStruct(struct csvBillingInfo table[]){
       if(tempChar == '\n'){
       num++;
       }
+      tempChar = fgetc(fl2);
    }
-	flcose(fl2);
+   rewind(fl2);
+	fclose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
+   //num++;
    num++;
    for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
@@ -193,10 +199,13 @@ int writeBackClientStruct(char* db, struct csvClientInfo table[]){
       if(tempChar == '\n'){
       num++;
       }
+      tempChar = fgetc(fl2);
    }
-	flcose(fl2);
+   rewind(fl2);
+	fclose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
+   //num++;
    for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
@@ -250,10 +259,13 @@ int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
       if(tempChar == '\n'){
       num++;
       }
+      tempChar = fgetc(fl2);
    }
-	flcose(fl2);
+   rewind(fl2);
+   fclose(fl2);
    //the last row doesnt have a \n so this will handle the last line the big part of why that assumption previous is made
    num++;
+   //num++;
    for(int x = 0; x < num; x++){
 	memset(result, 0, strlen(result));
 
