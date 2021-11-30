@@ -32,7 +32,7 @@ void modifyOrder(int clientSock);
 void viewBill(int clientSock);
 void editInfo(int type, int clientSock);
 void completeOrder(int clientSock);
-void viewProducts(int clientSock);
+void viewProducts(int clientSock, int type);
 void addProduct(int clientSock);
 void addNewProduct(int clientSock);
 void sellerMenu(int clientSock);
