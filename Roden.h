@@ -6,6 +6,8 @@
 #define GROUP_A_CS4323_RODEN_H
 
 #include <stdbool.h>
+#include <semaphore.h>
+#include <fcntl.h>
 #include "readDatabaseIntoArray.h"
 #include "tcpStuff.h"
 
@@ -23,27 +25,27 @@
 #define SEM_READ_ORDER "/readCustomerOrderInfo"
 
 //binary semaphores to lock writing priveledges
-sem_t *wrtProductInfo = sem_open(SEM_WRT_PRODUCT, O_CREAT, 0660, 1);
-sem_t *wrtBillingInfo = sem_open(SEM_WRT_BILLING, O_CREAT, 0660, 1);
-sem_t *wrtCustomerInfo = sem_open(SEM_WRT_BUYER, O_CREAT, 0660, 1);
-sem_t *wrtCustomerOrder = sem_open(SEM_WRT_ORDER, O_CREAT, 0660, 1);
-sem_t *wrtSellerInfo = sem_open(SEM_WRT_SELLER, O_CREAT, 0660, 1);
+sem_t *wrtProductInfo;
+sem_t *wrtBillingInfo;
+sem_t *wrtCustomerInfo;
+sem_t *wrtCustomerOrder;
+sem_t *wrtSellerInfo;
 
 //binary semaphores to lock modifying the number of readers reading(counters)
-sem_t *ProductInfoMutex = sem_open(SEM_READ_PRODUCT, O_CREAT, 0660, 1);
-sem_t *BillingInfoMutex = sem_open(SEM_READ_BILLING, O_CREAT, 0660, 1);
-sem_t *CustomerInfoMutex = sem_open(SEM_READ_BUYER, O_CREAT, 0660, 1);
-sem_t *CustomerOrderMutex = sem_open(SEM_READ_ORDER, O_CREAT, 0660, 1);
-sem_t *SellerInfoMutex = sem_open(SEM_READ_SELLER, O_CREAT, 0660, 1);
+sem_t *ProductInfoMutex;
+sem_t *BillingInfoMutex;
+sem_t *CustomerInfoMutex;
+sem_t *CustomerOrderMutex;
+sem_t *SellerInfoMutex;
 
 //list to keep track of products that have been deleted.
-int deletedProducts[maxRowsInDB] = {0};
+int deletedProducts[maxRowsInDB];
 //global counting vars to keep track of readers
-int buyerReaderCounter = 0;
-int sellerReaderCounter = 0;
-int billingReaderCounter = 0;
-int productReaderCounter = 0;
-int orderReaderCounter = 0;
+int buyerReaderCounter;
+int sellerReaderCounter;
+int billingReaderCounter;
+int productReaderCounter;
+int orderReaderCounter;
 
 bool validateID(char* buffer);
 

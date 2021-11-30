@@ -50,6 +50,28 @@ int main() {
     sem_unlink(SEM_READ_BUYER);
     sem_unlink(SEM_READ_ORDER);
 
+    //list to keep track of products that have been deleted.
+    bzero(deletedProducts, maxRowsInDB);
+//global counting vars to keep track of readers
+    buyerReaderCounter = 0;
+    sellerReaderCounter = 0;
+    billingReaderCounter = 0;
+    productReaderCounter = 0;
+    orderReaderCounter = 0;
+
+    //binary semaphores to lock writing priveledges
+    wrtProductInfo = sem_open(SEM_WRT_PRODUCT, O_CREAT, 0660, 1);
+    wrtBillingInfo = sem_open(SEM_WRT_BILLING, O_CREAT, 0660, 1);
+    wrtCustomerInfo = sem_open(SEM_WRT_BUYER, O_CREAT, 0660, 1);
+    wrtCustomerOrder = sem_open(SEM_WRT_ORDER, O_CREAT, 0660, 1);
+    wrtSellerInfo = sem_open(SEM_WRT_SELLER, O_CREAT, 0660, 1);
+
+//binary semaphores to lock modifying the number of readers reading(counters)
+   ProductInfoMutex = sem_open(SEM_READ_PRODUCT, O_CREAT, 0660, 1);
+    BillingInfoMutex = sem_open(SEM_READ_BILLING, O_CREAT, 0660, 1);
+    CustomerInfoMutex = sem_open(SEM_READ_BUYER, O_CREAT, 0660, 1);
+    CustomerOrderMutex = sem_open(SEM_READ_ORDER, O_CREAT, 0660, 1);
+    SellerInfoMutex = sem_open(SEM_READ_SELLER, O_CREAT, 0660, 1);
 
     /* TCP Vars */
     int hSocket;
