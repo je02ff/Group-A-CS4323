@@ -23,4 +23,7 @@ From each of these options, the client program will be in constant communication
 This is a summary of what the client portion entails, which is essentially a way to gather information from the client and send said information to the sub-server, which will update the functions in the data server accordingly.
 
 ### Server Side:
-***To run server side, use command 'gcc -o dataServer dataServer.c -lpthread'***
+***To run Database server side, use command 'gcc DataServer.c Roden.c JacobWilson.c -o DS -pthread' to compile then ./DS to run***
+***To run server side, use command 'gcc serverIPC.c -o SIPC -lrt' to compile then ./SIPC to run***
+The database server is a multithreaded server and supports up to m client server connections, with a unique thread created for each client server connection.  The database server houses 5 different text files which function as databases. These files store product information listed by sellers, a seller’s personal data, a buyer’s personal data, completed order data, and billing data. Since there is only 1 resource for each file, and multiple threads could be trying to read or write to them simultaneously, access to them must be synchronized.
+The database server receives buffer strings from the client server via TCP and parses what command is to be performed from a given string.  The necessary semaphore locks are engaged, and data is then read or written to the appropriate database files. The dataserver then writes a response back to the client server with pertinent data or a confirmation of the action performed.
