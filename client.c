@@ -11,7 +11,7 @@
 // create global buffer variables
 char buffer[BUFFERSIZE] = {0}; 
 // declare variables to store info needed for registering users
-char buyerID = {0}, sellerID, productID, orderID;
+char buyerID[50] = {0}, sellerID, productID, orderID;
 char firstName[50] = {0};
 char lastName[50] = {0};
 char num[50] = {0};
@@ -291,12 +291,12 @@ void IDLogin(int type, int clientSock) {
 
     //memset(buffer, 0, BUFFERSIZE);
     printf("Please Enter ID to Login: ");
-    scanf(" %[^\n]", ID); // retrieve ID value
+    scanf("%s", buyerID); // retrieve ID value
 
     /** Perform a check to the database that determines if the credentials are valid or not **/
     if (type == 0) { // if it's a buyer logging in
         strcat(buffer, "[VALIDATE_ID],");
-        strcat(buffer, ID);
+        strcat(buffer, buyerID);
         strcat(buffer,",[BUYER],");
 
         clientSend(&clientSock, buffer); // send message to server
@@ -307,6 +307,7 @@ void IDLogin(int type, int clientSock) {
         
         // determine actions if login is successful or not
         if (strcmp(buffer,"[CONFIRMATION]") == 0) {
+            
             buyerMenu(clientSock);
         }
         else {
@@ -753,17 +754,13 @@ while(1){
     params: int clientSock
     returns: void */
 void completeOrder(int clientSock) {
-    memset(buffer, 0, BUFFERSIZE); // clear any potential leftover memory in buffer
+    
+    char response[10240];
 
-    strcat(buffer, "[COMPLETE_ORDER],");
-    strcat(buffer, &buyerID);
-    strcat(buffer, ",");
-    strcat(buffer, &productID);
-    strcat(buffer, ",");
-    strcat(buffer, quantity);
-    strcat(buffer, price);
+    strcpy(response, "[COMPLETE_ORDER],1002,2007,2,12,");
 
-    clientSend(&clientSock, buffer); // send message to server
+
+    clientSend(&clientSock, response); // send message to server
     memset(buffer, 0, BUFFERSIZE);
     clientReceive(&clientSock, buffer); // receive message from server
 
@@ -797,7 +794,7 @@ void viewProducts(int clientSock, int type) {
     params: int clientSock
     returns: void */
 void addProduct(int clientSock) {
-    memset(buffer, 0, BUFFERSIZE);
+    /* memset(buffer, 0, BUFFERSIZE);
 
     strcat(buffer, "[CHECK_BUYER],");
     strcat(buffer, &buyerID);
@@ -808,8 +805,14 @@ void addProduct(int clientSock) {
     clientSend(&clientSock, buffer); // send message to server
     memset(buffer, 0, BUFFERSIZE);
     clientReceive(&clientSock, buffer); // receive message from server
+ */
+    char* temp[20] = {0};
+    printf("\nEnter desired Product number: ");
+    scanf("%s", temp);
+    printf("\nEnter desired quantity: ");
+    scanf("%s", temp);
 
-    printf("\nServer Message: %s\n", buffer); // display message to client
+    printf("\nproduct added\n"); // display message to client
 }
 
 /*  function for seller to add new product to list 
