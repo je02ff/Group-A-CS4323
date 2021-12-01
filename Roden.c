@@ -718,7 +718,7 @@ void completeAnOrder(char *buffer, int* clientSock) {
     struct itemOrder orderList[100];
     char* ptr;
     struct csvProductInfo productList[maxRowsInDB];
-
+    char response[MSG_BUFFER_SIZE] = {0};
     buyerID = atoi(strtok(buffer,","));
 
     ptr = strtok(NULL, "");
@@ -753,8 +753,12 @@ void completeAnOrder(char *buffer, int* clientSock) {
         orderID = writeOrderToBillingInfo(buyerList[buyerRecordRow], orderList, billingInfo);
         writeOrderToCustomerOrder(orderID, buyerList[buyerRecordRow], orderList,customerOrderInfo);
 
-        writeSocket(clientSock, "[CONFIRMATION]");
-    } else writeSocket(clientSock, "[INVALID]");
+        strcpy(response, "[CONFIRMATION]");
+        writeSocket(clientSock, response);
+    } else {
+        strcpy(response, "[INVALID]");
+        writeSocket(clientSock, response);
+    }
 
     sem_post(wrtProductInfo);
     //Writer released Product lock
@@ -866,7 +870,7 @@ void addNewProduct(char *buffer, int* clientSock) {
     struct csvProductInfo pList[maxRowsInDB];
     int newRecordRow = 0;
     char *ptr;
-
+    char response[MSG_BUFFER_SIZE] = {0};
     //Writer is waiting for ProductInfo
     sem_wait(wrtProductInfo);
 
@@ -895,8 +899,8 @@ void addNewProduct(char *buffer, int* clientSock) {
 
     sem_post(wrtProductInfo);
     //Writer released Product lock
-
-    writeSocket(clientSock, "[CONFIRMATION]");
+    strcpy(response, "[CONFIRMATION]");
+    writeSocket(clientSock, response);
 }
 
 void deleteProduct(char *buffer, int* clientSock) {
@@ -910,6 +914,7 @@ void deleteProduct(char *buffer, int* clientSock) {
     char productIdToValidate[20] = {0};
     int productRowNum = 0;
     int delProductIndex = 0;
+    char response[MSG_BUFFER_SIZE] = {0};
 
     ptr = strtok(buffer,",");
     sellerID = atoi(ptr);
@@ -939,7 +944,8 @@ void deleteProduct(char *buffer, int* clientSock) {
 
         //check to make sure seller is owner of the product to delete
         if(pList[productRowNum].sellerId != sellerID) {
-            writeSocket(clientSock, "[INVALID]");
+            strcpy(response, "[INVALID]");
+            writeSocket(clientSock, response);
         } else {
             //add to deleted product list
             while(deletedProducts[delProductIndex] != 0){
@@ -963,10 +969,12 @@ void deleteProduct(char *buffer, int* clientSock) {
         //Writer released ProductInfo lock
         //sem_post(wrtDeletedProductList);
         //Writer released deletedProductList lock
-        writeSocket(clientSock, "[CONFIRMATION]");
+        strcpy(response, "[CONFIRMATION]");
+        writeSocket(clientSock, response);
 
     } else {
-        writeSocket(clientSock, "[INVALID]");
+        strcpy(response, "[INVALID]");
+        writeSocket(clientSock, response);
     }
 }
 
@@ -978,6 +986,7 @@ void modifyQuantity(char *buffer, int* clientSock) {
     int sellerID, productID, quantity;
     char productIdToValidate[20] = {0};
     int productRowNum = 0;
+    char response[MSG_BUFFER_SIZE] = {0};
 
     ptr = strtok(buffer,",");
     sellerID = atoi(ptr);
@@ -1006,7 +1015,8 @@ void modifyQuantity(char *buffer, int* clientSock) {
 
         //check to make sure seller is owner of the product to delete
         if(pList[productRowNum].sellerId != sellerID) {
-            writeSocket(clientSock, "[INVALID]");
+            strcpy(response, "[INVALID]");
+            writeSocket(clientSock, response);
         } else {
             //modify the quantity
             pList[productRowNum].quantity = quantity;
@@ -1015,10 +1025,12 @@ void modifyQuantity(char *buffer, int* clientSock) {
         writeBackProductStruct(pList);
         sem_post(wrtProductInfo);
         //Writer released ProductInfo lock
-        writeSocket(clientSock, "[CONFIRMATION]");
+        strcpy(response, "[CONFIRMATION]");
+        writeSocket(clientSock, response);
 
     } else {
-        writeSocket(clientSock, "[INVALID]");
+        strcpy(response, "[INVALID]");
+        writeSocket(clientSock, response);
     }
 }
 
@@ -1030,6 +1042,7 @@ void modifyPrice(char *buffer, int* clientSock) {
     int sellerID, productID, priceToSet;
     char productIdToValidate[20] = {0};
     int productRowNum = 0;
+    char response[MSG_BUFFER_SIZE] = {0};
 
     ptr = strtok(buffer,",");
     sellerID = atoi(ptr);
@@ -1058,7 +1071,8 @@ void modifyPrice(char *buffer, int* clientSock) {
 
         //check to make sure seller is owner of the product to delete
         if(pList[productRowNum].sellerId != sellerID) {
-            writeSocket(clientSock, "[INVALID]");
+            strcpy(response, "[INVALID]");
+            writeSocket(clientSock, response);
         } else {
             //modify the quantity
             pList[productRowNum].price = priceToSet;
@@ -1067,10 +1081,12 @@ void modifyPrice(char *buffer, int* clientSock) {
         writeBackProductStruct(pList);
         sem_post(wrtProductInfo);
         //Writer released ProductInfo lock
-        writeSocket(clientSock, "[CONFIRMATION]");
+        strcpy(response, "[CONFIRMATION]");
+        writeSocket(clientSock, response);
 
     } else {
-        writeSocket(clientSock, "[INVALID]");
+        strcpy(response, "[INVALID]");
+        writeSocket(clientSock, response);
     }
 }
 
@@ -1178,7 +1194,7 @@ void clientEditsInfo(char *buffer, int* clientSock) {
     "[SELLER],clientID#,[NUMBER],phoneNum,"
     "[SELLER],clientID#,[ADDRESS],streetNum,city,state,zipCode,"
     */
-
+    char response[MSG_BUFFER_SIZE] = {0};
     char* ptr;
     char clientType[20] = {0};
     int clientID;
@@ -1212,7 +1228,8 @@ void clientEditsInfo(char *buffer, int* clientSock) {
             sellerEditsAddress(ptr, clientID);
         }
     }
-    writeSocket(clientSock, "[CONFIRMATION]");
+    strcpy(response,"[CONFIRMATION]");
+    writeSocket(clientSock, response);
 }
 
 void sellerEditsName(char* buffer, int id) {
@@ -1705,7 +1722,8 @@ bool validateOrderIsBuyers(char *buffer, int* clientSock) {
 void executeTaskOnServer(int clientSock) {
     char command[25];
     char buffer[MSG_BUFFER_SIZE];
-
+    char* confirm = "[CONFIRMATION]";
+    char* invalid = "[INVALID]";
     bzero(buffer, MSG_BUFFER_SIZE);
     readSocket(&clientSock, buffer);
     extractCommand(buffer, command);
@@ -1733,10 +1751,13 @@ void executeTaskOnServer(int clientSock) {
         bzero(buffer, MSG_BUFFER_SIZE);
         bzero(command, 25);
 
+
         if(result) {
-            writeSocket(&clientSock, "[CONFIRMATION]");
+            strcpy(buffer, confirm);
+            writeSocket(&clientSock, buffer);
         } else
-            writeSocket(&clientSock, "[INVALID]");
+            strcpy(buffer, invalid);
+            writeSocket(&clientSock, buffer);
 
         //SENDS BACK: [CONFIRMATION] OR [INVALID]
 
@@ -1779,10 +1800,13 @@ void executeTaskOnServer(int clientSock) {
         bzero(buffer, MSG_BUFFER_SIZE);
         bzero(command, 25);
 
-        if(result)
-            writeSocket(&clientSock, "[CONFIRMATION]");
-        else
-            writeSocket(&clientSock, "[INVALID]");
+        if (result) {
+            strcpy(buffer, confirm);
+            writeSocket(&clientSock, buffer);
+        } else {
+        strcpy(buffer, invalid);
+        writeSocket(&clientSock, buffer);
+        }
 
         //SENDS BACK: [INVALID] OR [CONFIRMATION]
 
