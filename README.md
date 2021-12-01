@@ -1,7 +1,9 @@
 # Group A CS4323 Final Project
 
 In order to compile the DataServer:
+
 In order to compile the Server: 
+
 In order to compile the Client: "gcc -o client client.c -lpthread"
 
 ***Note: The programs must be ran in the following order - 1. DataServer 2. Server 3. Client in order to work***
