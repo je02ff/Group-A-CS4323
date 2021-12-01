@@ -279,12 +279,12 @@ int main() {
             //the following read occurs in a call to [VALIDATE_ID]
             //readProductInfo();
             if (com.valid) {
-                printf("Writer now waiting for OrderInfo\n");
-                sem_wait(wrtCustomerOrder);
-                printf("Writer now waiting for BillingInfo\n");
-                sem_wait(wrtBillingInfo);
                 printf("Writer is waiting for ProductInfo\n");
                 sem_wait(wrtProductInfo);
+                printf("Writer now waiting for BillingInfo\n");
+                sem_wait(wrtBillingInfo);
+                printf("Writer now waiting for OrderInfo\n");
+                sem_wait(wrtCustomerOrder);
 
                 readProductInfo();
                 readBillingInfo();
