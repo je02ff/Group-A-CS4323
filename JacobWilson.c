@@ -64,7 +64,7 @@ while(temp != 0){
    strncpy(result,rev,strlen(result));
 }
 
-int writeBackProductStruct(struct csvProductInfo table[]){
+int writeBackProductStruct(struct csvProductInfo *table){
 //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
@@ -119,7 +119,7 @@ int writeBackProductStruct(struct csvProductInfo table[]){
    return 0;
 }
 
-int writeBackBillingStruct(struct csvBillingInfo table[]){
+int writeBackBillingStruct(struct csvBillingInfo *table){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
@@ -186,7 +186,7 @@ int writeBackBillingStruct(struct csvBillingInfo table[]){
    return 0;
 }
 
-int writeBackClientStruct(char* db, struct csvClientInfo table[]){
+int writeBackClientStruct(char* db, struct csvClientInfo *table){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];
@@ -246,7 +246,7 @@ int writeBackClientStruct(char* db, struct csvClientInfo table[]){
    return 0;
 }
 
-int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo table[]){
+int writeBackCustomerOrderStruct(struct csvCustomerOrderInfo *table){
    //FILE* fl1 = fopen("ProductInfo.txt","w+");
    char putBack[1000];
    char result[100];

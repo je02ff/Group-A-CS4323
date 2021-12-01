@@ -445,13 +445,13 @@ void writeNewClientData(char *buffer, int* clientSock) {
         while (clientDB[lastOccupiedRow].uuid != 0) {
             lastOccupiedRow++;
         }
-        clientDB[lastOccupiedRow+1].uuid = uuid;
-        strcpy(clientDB[lastOccupiedRow+1].firstName, firstName);
-        strcpy(clientDB[lastOccupiedRow+1].lastName, lastName);
-        strcpy(clientDB[lastOccupiedRow+1].streetAddress, streetAddress);
-        strcpy(clientDB[lastOccupiedRow+1].city, city);
-        strcpy(clientDB[lastOccupiedRow+1].state, state);
-        strcpy(clientDB[lastOccupiedRow+1].zipCode, zipCode);
+        clientDB[lastOccupiedRow].uuid = uuid;
+        strcpy(clientDB[lastOccupiedRow].firstName, firstName);
+        strcpy(clientDB[lastOccupiedRow].lastName, lastName);
+        strcpy(clientDB[lastOccupiedRow].streetAddress, streetAddress);
+        strcpy(clientDB[lastOccupiedRow].city, city);
+        strcpy(clientDB[lastOccupiedRow].state, state);
+        strcpy(clientDB[lastOccupiedRow].zipCode, zipCode);
 
         sprintf(stringID, "%d", uuid);
         writeSocket(clientSock,stringID);
