@@ -1755,9 +1755,10 @@ void executeTaskOnServer(int clientSock) {
         if(result) {
             strcpy(buffer, confirm);
             writeSocket(&clientSock, buffer);
-        } else
+        } else {
             strcpy(buffer, invalid);
             writeSocket(&clientSock, buffer);
+        }
 
         //SENDS BACK: [CONFIRMATION] OR [INVALID]
 
