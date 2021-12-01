@@ -290,7 +290,7 @@ void IDLogin(int type, int clientSock) {
         printf("\nServer Message: %s\n\n", buffer); // [CONFIRMATION] OR [INVALID]
         
         // determine actions if login is successful or not
-        if (strcmp(buffer,"SUCCESS") == 0) {
+        if (strcmp(buffer,"[CONFIRMATION]") == 0) {
             buyerMenu(clientSock);
         }
         else {
@@ -310,7 +310,7 @@ void IDLogin(int type, int clientSock) {
         printf("\nServer Message: %s\n", buffer); // [CONFIRMATION] OR [INVALID]
 
         // determine actions if login is successful or not
-        if (strcmp(buffer,"SUCCESS") == 0)
+        if (strcmp(buffer,"[CONFIRMATION]") == 0)
             sellerMenu(clientSock);
         else 
             initialMenu(clientSock); // return to the initial menu if login unsuccessful
@@ -518,7 +518,7 @@ void modifyOrder(int clientSock) {
     printf("\nServer Message: %s\n", buffer);
 
     // modify order if the ID is valid
-    if (strcmp(buffer,"SUCCESS") == 0) {
+    if (strcmp(buffer,"[CONFIRMATION]") == 0) {
         memset(buffer, 0, BUFFERSIZE);
 
         strcat(buffer, "[ORDER_DETAILS],");
