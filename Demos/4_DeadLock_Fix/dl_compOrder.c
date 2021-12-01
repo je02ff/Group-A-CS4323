@@ -61,7 +61,7 @@ void readBuyerInfo();
 int main() {
     /*----Initialize Semaphores----*/
     //Unlink any semaphores from previous tests, should only be active in the first process to begin demo
-    /*sem_unlink(SEM_WRT_PRODUCT);
+    sem_unlink(SEM_WRT_PRODUCT);
     sem_unlink(SEM_WRT_BILLING);
     sem_unlink(SEM_WRT_SELLER);
     sem_unlink(SEM_WRT_BUYER);
@@ -77,7 +77,7 @@ int main() {
     sem_unlink(SEM_COUNTER_SELLER);
     sem_unlink(SEM_COUNTER_BILLING);
     sem_unlink(SEM_COUNTER_PRODUCT);
-    sem_unlink(SEM_COUNTER_ORDER);*/
+    sem_unlink(SEM_COUNTER_ORDER);
 
     //binary semaphores to lock writing priveledges
     sem_t *wrtProductInfo = sem_open(SEM_WRT_PRODUCT, O_CREAT, 0660, 1);
@@ -279,12 +279,12 @@ int main() {
             //the following read occurs in a call to [VALIDATE_ID]
             //readProductInfo();
             if (com.valid) {
-                printf("Writer now waiting for OrderInfo\n");
-                sem_wait(wrtCustomerOrder);
-                printf("Writer now waiting for BillingInfo\n");
-                sem_wait(wrtBillingInfo);
                 printf("Writer is waiting for ProductInfo\n");
                 sem_wait(wrtProductInfo);
+                printf("Writer now waiting for BillingInfo\n");
+                sem_wait(wrtBillingInfo);
+                printf("Writer now waiting for OrderInfo\n");
+                sem_wait(wrtCustomerOrder);
 
                 readProductInfo();
                 readBillingInfo();
