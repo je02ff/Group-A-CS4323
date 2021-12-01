@@ -1,8 +1,8 @@
 # Group A CS4323 Final Project
 
-In order to compile the DataServer:
+In order to compile the DataServer: "gcc DataServer.c Roden.c JacobWilson.c -o DS -pthread"
 
-In order to compile the Server: 
+In order to compile the Server: "gcc serverIPC.c -o SIPC -lrt"
 
 In order to compile the Client: "gcc -o client client.c -lpthread"
 
