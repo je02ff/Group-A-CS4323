@@ -1,7 +1,6 @@
 /*  Group A
     Author: Jeremiah Pete
     Email: jeremiah.pete@okstate.edu
-
     Program Description: This file handles the structuring of the client side of the program,
     both the buyer and seller   
     
@@ -49,7 +48,7 @@ void clientReceive(int *socketVal, char *buff) {
 void initialMenu(int clientSock) {
     int selection;
     memset(buffer, 0, BUFFERSIZE);
-
+while(1){
     printf("\nPlease select an option below - \n\n");
     // display options to user
     printf("1. Buyer Menu\n");
@@ -61,17 +60,22 @@ void initialMenu(int clientSock) {
     scanf("%d", &selection);
 
     // use switch case to determine which menu to show
+    
     switch (selection) {
         case 1: // go to buyerLogin()
             buyerLogin(clientSock);
+            break;
         case 2: // go to sellerLogin()
             sellerLogin(clientSock);
+            break;
         case 3: // exit program
             printf("\nProgram Terminated\n");
             exit(0);
         default:
             printf("\nPlease select a valid choice!\n\n");
             initialMenu(clientSock);
+            break;
+    }
     }
 }
 
@@ -81,7 +85,7 @@ void initialMenu(int clientSock) {
 void buyerLogin(int clientSock) {
     int select;
     int type = 0; // for register option
-
+while(1){
     printf("\n\nBuyer Login:\n\nPlease select an option -\n\n");
     
     // display options to user
@@ -94,18 +98,24 @@ void buyerLogin(int clientSock) {
     scanf("%d", &select);
 
     // use switch case to make decision
+    
     switch (select) {
         case 1: // new customer registration
             userRegister(type, clientSock);
+            break;
         case 2: // login with customer ID
             IDLogin(type, clientSock);
+            break;
         case 3: // go back to main menu
             initialMenu(clientSock);
+            break;
         case 4:
             exit(0);
         default:
             printf("\nPlease select a valid choice!\n\n");
             buyerLogin(clientSock);
+            break;
+    }
     }
 }
 
@@ -115,7 +125,7 @@ void buyerLogin(int clientSock) {
 void sellerLogin(int clientSock) {
     int select;
     int type = 1; // for register option
-
+while(1){
     printf("\n\nSeller Login:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -128,18 +138,24 @@ void sellerLogin(int clientSock) {
     scanf("%d", &select); // get input
 
     // use switch case to make decision
+    
     switch (select) {
     case 1: // new seller registration
         userRegister(type, clientSock);
+        break;
     case 2: // login with sellerID
         IDLogin(type, clientSock);
+        break;
     case 3: // go back to the initial menu
         initialMenu(clientSock);
+        break;
     case 4: // exit program
         exit(0);
     default:
         printf("\nPlease select a valid choice!\n\n");
         sellerMenu(clientSock);
+        break;
+    }
     }
 }
 
@@ -323,7 +339,7 @@ void IDLogin(int type, int clientSock) {
 void buyerMenu(int clientSock) {
     int select;
     int type = 0; // to distinguish from seller
-
+while(1){
     printf("\n\nBuyer Menu:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -339,25 +355,34 @@ void buyerMenu(int clientSock) {
     scanf("%d", &select); // get input
 
     // use switch case for handling
+    
     switch (select)
     {
     case 1: // make an order
         makeOrder(clientSock);
+        break;
     case 2: // view orders
         viewOrder(clientSock);
+        break;
     case 3: // modify order
         modifyOrder(clientSock);
+        break;
     case 4: // view billing info
         viewBill(clientSock);
+        break;
     case 5: // edit info
         editInfo(type, clientSock);
+        break;
     case 6: // back to main menu
         initialMenu(clientSock);
+        break;
     case 7: // exit case
         exit(0);
     default:
         printf("Please select a valid choice!\n\n");
         buyerMenu(clientSock);
+        break;
+    }
     }
 }
 
@@ -367,7 +392,7 @@ void buyerMenu(int clientSock) {
 void sellerMenu(int clientSock) {
     int select;
     int type = 1; // to distinguish from buyer
-
+while(1){
     printf("\n\nSeller Menu:\n\nPlease select an option -\n\n");
 
     // display options to user
@@ -385,29 +410,40 @@ void sellerMenu(int clientSock) {
         scanf("%d", &select); // get input
 
         // use switch case for handling
+        
         switch (select) {
             case 1: // view offered products
                 viewProducts(clientSock, type);
+                break;
             case 2: // add new product 
                 addNewProduct(clientSock);
+                break;
             case 3: // delete product
                 deleteProduct(clientSock);
+                break;
             case 4: // modify quantity
                 modifyQuantity(clientSock);
+                break;
             case 5: //  modify price
                 modifyPrice(clientSock);
+                break;
             case 6: // view product orders
                 viewOrder(clientSock);
+                break;
             case 7: // edit seller info
                 editInfo(type, clientSock);
+                break;
             case 8: // return to main menu
                 initialMenu(clientSock);
+                break;
             case 9: // exit case
                 printf("Program Terminated\n");
                 exit(0);
             default:
                 printf("Please select a valid choice!\n\n");
                 sellerMenu(clientSock);
+                break;
+        }
         }
 }
 
@@ -417,7 +453,7 @@ void sellerMenu(int clientSock) {
 void makeOrder(int clientSock) {
     int select;
     int type = 0;
-
+while(1){
     // display options to user
         printf("1. View Available Products\n");
         printf("2. Add Product to Order\n");
@@ -429,21 +465,28 @@ void makeOrder(int clientSock) {
         scanf("%d", &select); // get selection
 
         // handle selection
+        
         switch (select) {
             case 1: // view available products
                 viewProducts(clientSock, type);
+                break;
             case 2: // add to order
                 addProduct(clientSock);
+                break;
             case 3: // complete order
                 completeOrder(clientSock);
+                break;
             case 4: // back to buyer menu
                 buyerMenu(clientSock);
+                break;
             case 5: // exit program
                 printf("\nProgram Terminated\n");
                 exit(0);
             default:
                 printf("\n\nPlease select a proper choice!\n\n");
                 makeOrder(clientSock);
+                break;
+        }
         }
 }
 
@@ -573,7 +616,7 @@ void viewBill(int clientSock) {
     returns: void */
 void editInfo(int type, int clientSock) {
     int select;
-
+while(1){
     printf("1. Edit Name\n");
     printf("2. Edit Number\n");
     printf("3. Edit Address\n");
@@ -624,6 +667,7 @@ void editInfo(int type, int clientSock) {
 
                 printf("\nServer Message: %s\n", buffer); // display message to client
             }
+            break;
         case 2: // edit number
             printf("\nEnter New Number: ");
             scanf(" %[^\n]", num);
@@ -659,6 +703,7 @@ void editInfo(int type, int clientSock) {
 
                 printf("\nServer Message: %s\n", buffer); // display message to client
             }
+            break;
         case 3: // edit address
             printf("\nEnter New Address: ");
             scanf(" %[^\n]", address);
@@ -694,11 +739,13 @@ void editInfo(int type, int clientSock) {
 
                 printf("\nServer Message: %s\n", buffer); // display message to client
             }
+            break;
         case 4: // return to whichever menu came from
             if (type == 0)
                 buyerMenu(clientSock);
             else
                 sellerMenu(clientSock);
+    }
     }
 }
 
